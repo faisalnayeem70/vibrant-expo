@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibrant Expo — Visitor Registration</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px 16px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: white;
+      border-radius: 18px;
+      padding: 30px 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: 1px;
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: #777;
+      font-size: 15px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #d5d5d5;
+      border-radius: 10px;
+      font-size: 16px;
+      background: white;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #111;
+    }
+
+    .family-options {
+      display: flex;
+      gap: 10px;
+    }
+
+    .family-option {
+      flex: 1;
+      border: 1px solid #d5d5d5;
+      border-radius: 10px;
+      padding: 13px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .family-option input {
+      width: auto;
+      margin-right: 7px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      padding: 15px;
+      background: #111;
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .message {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 10px;
+      display: none;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .message.success {
+      display: block;
+      background: #e9f8ee;
+      color: #146c2e;
+    }
+
+    .message.error {
+      display: block;
+      background: #fdecec;
+      color: #a21d1d;
+    }
+
+    .ticket {
+      display: none;
+      margin-top: 22px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      text-align: center;
+    }
+
+    .ticket h2 {
+      margin-top: 0;
+    }
+
+    .ticket-number {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 12px 0;
+    }
+
+    @media (max-width: 480px) {
+      .page {
+        padding: 15px 10px;
+      }
+
+      .card {
+        padding: 24px 18px;
+      }
+
+      .brand h1 {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page">
+
+    <div class="card">
+
+      <div class="brand">
+        <h1>VIBRANT EXPO</h1>
+        <p>Visitor Registration</p>
+      </div>
+
+      <form id="registrationForm">
+
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input
+            id="fullName"
+            type="text"
+            placeholder="Enter your full name"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label for="mobile">Mobile Number</label>
+          <input
+            id="mobile"
+            type="tel"
+            placeholder="Enter mobile number"
+            inputmode="numeric"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label for="whatsapp">WhatsApp Number</label>
+          <input
+            id="whatsapp"
+            type="tel"
+            placeholder="Enter WhatsApp number"
+            inputmode="numeric"
+          >
+        </div>
+
+        <div class="field">
+          <label for="gender">Gender</label>
+          <select id="gender">
+            <option value="">Select gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="city">City</label>
+          <input
+            id="city"
+            type="text"
+            value="Hyderabad"
+            placeholder="Enter your city"
+          >
+        </div>
+
+        <div class="field">
+          <label for="source">How did you hear about us?</label>
+          <select id="source">
+            <option value="">Select source</option>
+            <option value="Instagram">Instagram</option>
+            <option value="YouTube">YouTube</option>
+            <option value="Pamphlet">Pamphlet</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Facebook">Facebook</option>
+            <option value="Friend / Family">Friend / Family</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+
+          <label>Are you coming with family?</label>
+
+          <div class="family-options">
+
+            <label class="family-option">
+              <input
+                type="radio"
+                name="family"
+                value="yes"
+                checked
+              >
+              Yes
+            </label>
+
+            <label class="family-option">
+              <input
+                type="radio"
+                name="family"
+                value="no"
+              >
+              No
+            </label>
+
+          </div>
+
+        </div>
+
+        <div class="field" id="companionsField">
+
+          <label for="companions">
+            Number of people coming with you to the event
+          </label>
+
+          <input
+            id="companions"
+            type="number"
+            min="0"
+            value="2"
+          >
+
+        </div>
+
+        <button type="submit">
+          REGISTER
+        </button>
+
+      </form>
+
+      <div id="message" class="message"></div>
+
+      <div id="ticket" class="ticket">
+
+        <h2>Registration Successful</h2>
+
+        <p>Your ticket number is:</p>
+
+        <div id="ticketNumber" class="ticket-number"></div>
+
+        <p id="expectedPeople"></p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const familyInputs = document.querySelectorAll(
+      'input[name="family"]'
+    );
+
+    const companionsField =
+      document.getElementById("companionsField");
+
+    familyInputs.forEach(input => {
+
+      input.addEventListener("change", () => {
+
+        if (input.value === "yes" && input.checked) {
+          companionsField.classList.remove("hidden");
+        }
+
+        if (input.value === "no" && input.checked) {
+          companionsField.classList.add("hidden");
+        }
+
+      });
+
+    });
+
+    document
+      .getElementById("registrationForm")
+      .addEventListener("submit", function(event) {
+
+        event.preventDefault();
+
+        const message =
+          document.getElementById("message");
+
+        message.className = "message success";
+        message.textContent =
+          "Registration form is working. Database connection will be added next.";
+
+      });
+  </script>
+
+</body>
+</html>
