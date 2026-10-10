@@ -345,20 +345,108 @@
 
     });
 
-    document
-      .getElementById("registrationForm")
-      .addEventListener("submit", function(event) {
+    const SUPABASE_URL = "https://jzfjzjldcazysnqlpjr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_V5bTKaoMgbrBx6ic8EuX6g_euN9COX8E";
 
-        event.preventDefault();
+document
+  .getElementById("registrationForm")
+  .addEventListener("submit", async function (event) {
+    event.preventDefault();
 
-        const message =
-          document.getElementById("message");
+    const form = event.currentTarget;
+    const message = document.getElementById("message");
+    const button = form.querySelector('button[type="submit"]');
+    const ticket = document.getElementById("ticket");
 
-        message.className = "message success";
-        message.textContent =
-          "Registration form is working. Database connection will be added next.";
+    const family = document.querySelector(
+      'input[name="family"]:checked'
+    ).value === "yes";
 
-      });
+    const params = new URLSearchParams(window.location.search);
+    const sourceToken =
+      params.get("source_token") ||
+      params.get("source") ||
+      "";
+
+    const companions = family
+      ? Math.max(0, parseInt(
+          document.getElementById("companions").value || "0",
+          10
+        ))
+      : 0;
+
+    message.className = "message";
+    message.style.display = "block";
+    message.textContent = "Registering your visit...";
+
+    button.disabled = true;
+    button.textContent = "PLEASE WAIT";
+    ticket.style.display = "none";
+
+    try {
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/rpc/register_visitor`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+          },
+          body: JSON.stringify({
+            p_full_name: document.getElementById("fullName").value.trim(),
+            p_mobile_number: document.getElementById("mobile").value.trim(),
+            p_whatsapp_number: document.getElementById("whatsapp").value.trim(),
+            p_gender: document.getElementById("gender").value,
+            p_city: document.getElementById("city").value.trim(),
+            p_source_token: sourceToken || null,
+            p_manual_source: document.getElementById("source").value || null,
+            p_coming_with_family: family,
+            p_companions_count: companions
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || result.details || result.hint ||
+          "Registration failed. Please try again."
+        );
+      }
+
+      const registration = Array.isArray(result)
+        ? result[0]
+        : result;
+
+      if (!registration || !registration.ticket_number) {
+        throw new Error("Registration response was incomplete.");
+      }
+
+      document.getElementById("ticketNumber").textContent =
+        registration.ticket_number;
+
+      document.getElementById("expectedPeople").textContent =
+        `Expected visitors: ${registration.expected_people}`;
+
+      ticket.style.display = "block";
+      message.className = "message success";
+      message.textContent =
+        "Registration successful! Your ticket is ready.";
+
+      form.reset();
+      document.getElementById("city").value = "Hyderabad";
+
+    } catch (error) {
+      message.className = "message error";
+      message.textContent =
+        error.message || "Something went wrong. Please try again.";
+    } finally {
+      button.disabled = false;
+      button.textContent = "REGISTER";
+    }
+  });
   </script>
 
 </body>
