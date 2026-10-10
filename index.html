@@ -314,6 +314,8 @@
         <div id="ticketNumber" class="ticket-number"></div>
 
         <p id="expectedPeople"></p>
+        <p>Scan this QR code at the entrance</p>
+<div id="ticketQR" style="margin: 20px auto;"></div>
 
       </div>
 
@@ -423,7 +425,18 @@ document
       if (!registration || !registration.ticket_number) {
         throw new Error("Registration response was incomplete.");
       }
+const qrBox = document.getElementById("ticketQR");
+qrBox.innerHTML = "";
 
+const qrImage = document.createElement("img");
+qrImage.alt = "Vibrant Expo ticket QR code";
+qrImage.width = 200;
+qrImage.height = 200;
+qrImage.src =
+  "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
+  encodeURIComponent(registration.ticket_token);
+
+qrBox.appendChild(qrImage);
       document.getElementById("ticketNumber").textContent =
         registration.ticket_number;
 
