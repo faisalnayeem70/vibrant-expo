@@ -171,6 +171,15 @@
         font-size: 26px;
       }
     }
+
+    /* Hide fields visually while retaining their existing HTML and integration */
+    #registrationForm .field:has(#mobile),
+    #registrationForm .field:has(#gender),
+    #registrationForm .field:has(#city),
+    #registrationForm .field:has(input[name="family"]) {
+      display: none !important;
+    }
+
   </style>
 </head>
 
@@ -324,6 +333,11 @@
   </div>
 
   <script>
+    // The normal mobile field stays in the HTML but is hidden from visitors.
+    // Use the visible WhatsApp number for the existing required database parameter.
+    document.getElementById("mobile").required = false;
+
+    
     const familyInputs = document.querySelectorAll(
       'input[name="family"]'
     );
@@ -397,7 +411,7 @@ document
           },
           body: JSON.stringify({
             p_full_name: document.getElementById("fullName").value.trim(),
-            p_mobile_number: document.getElementById("mobile").value.trim(),
+            p_mobile_number: document.getElementById("whatsapp").value.trim(),
             p_whatsapp_number: document.getElementById("whatsapp").value.trim(),
             p_gender: document.getElementById("gender").value,
             p_city: document.getElementById("city").value.trim(),
@@ -460,6 +474,7 @@ qrBox.appendChild(qrImage);
       button.textContent = "REGISTER";
     }
   });
+    
   </script>
 
 </body>
