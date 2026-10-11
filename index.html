@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vibrant Expo — Visitor Registration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alice&display=swap" rel="stylesheet">
 
   <style>
     * {
@@ -13,7 +16,8 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 28%, #d9c2ff 62%, #b8f1f0 100%);
+      background-attachment: fixed;
       color: #222;
     }
 
@@ -31,7 +35,9 @@
       background: white;
       border-radius: 18px;
       padding: 30px 24px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      box-shadow: 0 12px 36px rgba(79, 36, 115, 0.16);
+      border-top: 6px solid transparent;
+      border-image: linear-gradient(90deg, #ff5f6d, #ffc371, #7b61ff, #18c8c8) 1;
     }
 
     .brand {
@@ -40,9 +46,14 @@
     }
 
     .brand h1 {
-      margin: 0;
-      font-size: 30px;
-      letter-spacing: 1px;
+      margin: 2px 0 4px;
+      font-size: clamp(34px, 7vw, 48px);
+      line-height: 1.04;
+      letter-spacing: -1px;
+      font-weight: 900;
+      color: #7415b8;
+      -webkit-text-stroke: 0;
+      text-shadow: none;
     }
 
     .brand p {
@@ -158,6 +169,97 @@
       margin: 12px 0;
     }
 
+    .presenter-lockup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 0 0 5px;
+    }
+
+    .presented-by {
+      display: block;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      color: #c2185b;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 1.4;
+      letter-spacing: 0.35px;
+      text-shadow: none;
+      text-transform: none;
+    }
+
+    .alice-brand {
+      font-family: "Alice", Georgia, serif;
+      font-size: clamp(26px, 6vw, 32px);
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: none;
+      color: #7b2f66;
+      text-shadow: none;
+      display: inline-block;
+      line-height: 1.2;
+    }
+
+    .event-details {
+      margin: 12px 0 0;
+      padding: 14px 12px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #fff3c5 0%, #ffd9ec 48%, #d9f4ff 100%);
+      border: 1px solid rgba(123, 97, 255, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .season-label {
+      color: #7044c8;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    .visitor-registration {
+      margin: 0 0 10px;
+      color: #666078;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    .form-subtitle {
+      text-align: center;
+      margin: 0 0 18px;
+      font-size: 15px;
+      color: #666078;
+    }
+
+    .event-date {
+      color: #b77700;
+      font-size: clamp(17px, 4vw, 22px);
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 7px;
+      text-shadow: none;
+    }
+
+    .event-venue {
+      color: #075fb0;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.45;
+      margin-bottom: 9px;
+      text-shadow: none;
+    }
+
+    .entry-note {
+      color: #b12c65;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+    }
+
     @media (max-width: 480px) {
       .page {
         padding: 15px 10px;
@@ -190,9 +292,20 @@
     <div class="card">
 
       <div class="brand">
+        <div class="presenter-lockup">
+          <span class="alice-brand">Vv collections</span>
+          <span class="presented-by">Presents</span>
+        </div>
         <h1>VIBRANT EXPO</h1>
-        <p>Visitor Registration</p>
+        <div class="event-details">
+          <div class="season-label">SEASON 01</div>
+          <div class="event-date">Sunday, 1 November 2026</div>
+          <div class="event-venue">📍 KINGS CLASSIC GARDEN<br>Gudimalkapur</div>
+          <div class="entry-note">FREE ENTRY · REGISTER FOR YOUR TICKET</div>
+        </div>
       </div>
+
+      <p class="visitor-registration form-subtitle">Visitor Registration</p>
 
       <form id="registrationForm">
 
