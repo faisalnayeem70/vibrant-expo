@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vibrant Expo — Entry Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 20px; min-height: 100vh;
+      font-family: Arial, sans-serif; color: #222;
+      background: linear-gradient(135deg,#ffe2cc,#e5c9ff,#c4f0f7);
+    }
+    main {
+      max-width: 480px; margin: auto; padding: 22px;
+      background: white; border-radius: 20px;
+      box-shadow: 0 10px 35px #0002;
+    }
+    h1 { text-align: center; color: #8114bc; margin: 0 0 5px; }
+    p { text-align: center; color: #555; }
+    label { display: block; margin-top: 18px; font-weight: bold; }
+    input, button {
+      width: 100%; padding: 14px; margin-top: 8px;
+      border-radius: 10px; font-size: 16px;
+    }
+    input { border: 1px solid #bbb; }
+    button {
+      border: 0; background: #7816b4; color: white;
+      font-weight: bold; cursor: pointer;
+    }
+    button:disabled { opacity: .55; }
+    #reader { margin-top: 18px; width: 100%; }
+    #status {
+      margin-top: 18px; padding: 20px 12px;
+      border-radius: 12px; text-align: center;
+      font-size: 21px; font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+    .idle { background: #eee; color: #333; }
+    .accepted { background: #c9f7d6; color: #075c25; }
+    .duplicate { background: #fff0b8; color: #795200; }
+    .invalid { background: #ffd5d5; color: #a00000; }
+    .info { font-size: 13px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>VIBRANT EXPO</h1>
+  <p>Season 01 · Entrance Scanner</p>
+
+  <label for="pin">Staff Scanner PIN</label>
+  <input id="pin" type="password" inputmode="numeric"
+         autocomplete="current-password" placeholder="Enter scanner PIN">
+
+  <label for="staff">Scanner name</label>
+  <input id="staff" maxlength="40" value="Scanner 01"
+         autocomplete="off">
+
+  <button id="start">START CAMERA SCANNER</button>
+  <button id="stop" disabled>STOP SCANNER</button>
+
+  <div id="reader"></div>
+  <div id="status" class="idle" role="status" aria-live="polite">
+    Enter PIN and start the scanner
+  </div>
+  <p class="info">Green = accepted · Yellow = duplicate · Red = invalid</p>
+</main>
+
+<script>
+(() => {
+  const FUNCTION_URL =
+    "https://jzfjizjldcazysnqlpjr.supabase.co/functions/v1/expo-scanner";
+
+  const $ = id => document.getElementById(id);
+  let scanner = null;
+  let running = false;
+  let busy = false;
+  let lastToken = "";
+  let lastTime = 0;
+
+  function show(message, type) {
+    $("status").textContent = message;
+    $("status").className = type;
+  }
+
+  async function handleScan(decodedText) {
+    const token = decodedText.trim();
+    const now = Date.now();
+
+    // Prevent rapid repeat requests while the same QR remains in view.
+    if (busy || (token === lastToken && now - lastTime < 2500)) return;
+
+    lastToken = token;
+    lastTime = now;
+    busy = true;
+
+    try {
+      const response = await fetch(FUNCTION_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pin: $("pin").value,
+          ticket_token: token,
+          scanner_label: $("staff").value.trim() || "Scanner"
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.status === 401) {
+        show("PIN INCORRECT — CHECK STAFF PIN", "invalid");
+      } else if (!response.ok) {
+        show("SERVER ERROR — TRY AGAIN", "invalid");
+      } else if (result.status === "accepted") {
+        show("✓ ENTRY ACCEPTED", "accepted");
+      } else if (result.status === "duplicate") {
+        show("⚠ ALREADY SCANNED — ALLOW ENTRY", "duplicate");
+      } else if (result.status === "invalid") {
+        show("✕ INVALID TICKET", "invalid");
+      } else {
+        show("UNEXPECTED RESPONSE — CHECK", "invalid");
+      }
+    } catch (error) {
+      show("CONNECTION ERROR — CHECK INTERNET", "invalid");
+    } finally {
+      busy = false;
+    }
+  }
+
+  $("start").addEventListener("click", async () => {
+    if (running) return;
+    if (!$("pin").value.trim()) {
+      show("ENTER STAFF PIN FIRST", "invalid");
+      $("pin").focus();
+      return;
+    }
+
+    if (typeof Html5Qrcode === "undefined") {
+      show("SCANNER LIBRARY FAILED TO LOAD", "invalid");
+      return;
+    }
+
+    scanner = new Html5Qrcode("reader");
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        { fps: 12, qrbox: { width: 250, height: 250 } },
+        handleScan,
+        () => {}
+      );
+      running = true;
+      $("start").disabled = true;
+      $("stop").disabled = false;
+      show("CAMERA READY — SCAN A TICKET", "idle");
+    } catch (error) {
+      scanner = null;
+      show("CAMERA FAILED — ALLOW CAMERA PERMISSION", "invalid");
+    }
+  });
+
+  $("stop").addEventListener("click", async () => {
+    if (scanner && running) {
+      try {
+        await scanner.stop();
+        await scanner.clear();
+      } catch (error) {}
+    }
+    scanner = null;
+    running = false;
+    $("start").disabled = false;
+    $("stop").disabled = true;
+    show("SCANNER STOPPED", "idle");
+  });
+})();
+</script>
+</body>
+</html>
