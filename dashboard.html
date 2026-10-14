@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibrant Expo | Admin Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#10111b;--card:#1c1d2d;--text:#f7f7fb;--muted:#a6a8bd;--accent:#ffca55;--border:#34354b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+header{padding:22px 18px;background:#191a29;border-bottom:1px solid var(--border)}
+.wrap{max-width:1100px;margin:auto;padding:20px}
+h1{margin:0;color:var(--accent);font-size:25px}
+.subtitle{color:var(--muted);margin-top:8px;font-size:13px}
+.panel,.metric{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.panel{max-width:430px;margin:35px auto}
+label{display:block;margin:15px 0 8px;color:var(--muted)}
+input{width:100%;padding:13px;border-radius:8px;border:1px solid var(--border);background:#10111b;color:white;font-size:16px}
+button{border:0;border-radius:8px;background:var(--accent);color:#171717;font-weight:bold;padding:12px 17px;cursor:pointer}
+.panel button{width:100%;margin-top:14px}
+#error{color:#ff9292;font-size:14px;margin-top:12px}
+#app{display:none}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.toolbar button{width:auto}
+#status{color:var(--muted);font-size:13px;margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.metric .label{color:var(--muted);font-size:14px}
+.metric .value{font-size:34px;font-weight:bold;margin-top:14px;overflow-wrap:anywhere}
+.metric .note{font-size:12px;color:var(--muted);margin-top:8px}
+footer{color:var(--muted);font-size:12px;margin-top:22px;line-height:1.6}
+@media(max-width:480px){.wrap{padding:14px}.metric .value{font-size:29px}h1{font-size:22px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding:0 18px">
+    <h1>VIBRANT EXPO</h1>
+    <div class="subtitle">Season 1 · Management Dashboard · 1 November 2026</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="login" class="panel">
+    <h2>Admin Login</h2>
+    <p class="subtitle">Enter your private dashboard PIN.</p>
+    <form id="loginForm">
+      <label for="pin">Dashboard PIN</label>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" required>
+      <button id="loginButton" type="submit">Open Dashboard</button>
+      <div id="error" role="alert"></div>
+    </form>
+  </section>
+
+  <section id="app">
+    <div class="toolbar">
+      <button id="refreshButton" type="button">Refresh Now</button>
+      <button id="logoutButton" type="button">Lock Dashboard</button>
+      <span id="status" aria-live="polite">Waiting to load…</span>
+    </div>
+
+    <div class="grid">
+      <article class="metric">
+        <div class="label">Total Tickets</div>
+        <div class="value" id="tickets">—</div>
+        <div class="note">All registrations</div>
+      </article>
+      <article class="metric">
+        <div class="label">Expected Visitors</div>
+        <div class="value" id="expected">—</div>
+        <div class="note">Based on registration estimates</div>
+      </article>
+      <article class="metric">
+        <div class="label">Unique Tickets Scanned</div>
+        <div class="value" id="checked">—</div>
+        <div class="note">Successful first-time check-ins</div>
+      </article>
+      <article class="metric">
+        <div class="label">Accepted Scans</div>
+        <div class="value" id="accepted">—</div>
+        <div class="note">Accepted scan attempts</div>
+      </article>
+      <article class="metric">
+        <div class="label">Duplicate Scans</div>
+        <div class="value" id="duplicates">—</div>
+        <div class="note">Tickets scanned more than once</div>
+      </article>
+      <article class="metric">
+        <div class="label">Invalid Scans</div>
+        <div class="value" id="invalid">—</div>
+        <div class="note">Unrecognized or invalid tickets</div>
+      </article>
+    </div>
+
+    <footer>
+      Data refreshes every 30 seconds while this page is open.
+      Expected visitors are estimates, not a verified physical headcount.
+    </footer>
+  </section>
+</main>
+
+<script>
+const API_URL = "https://jzfjizjldcazysnqlpjr.supabase.co/functions/v1/expo-dashboard";
+
+const login = document.getElementById("login");
+const app = document.getElementById("app");
+const form = document.getElementById("loginForm");
+const pinInput = document.getElementById("pin");
+const errorBox = document.getElementById("error");
+const loginButton = document.getElementById("loginButton");
+const statusBox = document.getElementById("status");
+
+let dashboardPin = "";
+let refreshTimer = null;
+let requestRunning = false;
+
+function showStatus(message) {
+  statusBox.textContent = message;
+}
+
+async function loadDashboard() {
+  if (!dashboardPin || requestRunning) return;
+  requestRunning = true;
+  showStatus("Refreshing…");
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin: dashboardPin })
+    });
+
+    const result = await response.json();
+
+    if (response.status === 401) {
+      lockDashboard();
+      errorBox.textContent = "PIN rejected. Please log in again.";
+      return;
+    }
+
+    if (!response.ok || !result.success || !result.summary) {
+      throw new Error(result.error || "Could not load dashboard");
+    }
+
+    const s = result.summary;
+    const values = {
+      tickets: s.total_tickets,
+      expected: s.expected_visitors,
+      checked: s.unique_tickets_scanned,
+      accepted: s.accepted_scans,
+      duplicates: s.duplicate_scans,
+      invalid: s.invalid_scans
+    };
+
+    for (const [id, value] of Object.entries(values)) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) throw new Error("Unexpected dashboard data");
+      document.getElementById(id).textContent = number.toLocaleString("en-IN");
+    }
+
+    showStatus("Updated " + new Date().toLocaleTimeString());
+  } catch (error) {
+    console.error(error);
+    showStatus("Refresh failed — check connection and try again.");
+  } finally {
+    requestRunning = false;
+  }
+}
+
+function lockDashboard() {
+  dashboardPin = "";
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = null;
+  requestRunning = false;
+  app.style.display = "none";
+  login.style.display = "block";
+  pinInput.value = "";
+  pinInput.focus();
+  showStatus("Dashboard locked");
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const enteredPin = pinInput.value.trim();
+  if (!enteredPin) return;
+
+  errorBox.textContent = "";
+  loginButton.disabled = true;
+  loginButton.textContent = "Checking…";
+
+  dashboardPin = enteredPin;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin: dashboardPin })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      dashboardPin = "";
+      errorBox.textContent = response.status === 401
+        ? "Incorrect PIN. Please try again."
+        : (result.error || "Login failed. Please retry.");
+      return;
+    }
+
+    login.style.display = "none";
+    app.style.display = "block";
+    await loadDashboard();
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = setInterval(loadDashboard, 30000);
+  } catch (error) {
+    dashboardPin = "";
+    errorBox.textContent = "Unable to connect. Check your internet and retry.";
+  } finally {
+    loginButton.disabled = false;
+    loginButton.textContent = "Open Dashboard";
+  }
+});
+
+document.getElementById("refreshButton").addEventListener("click", loadDashboard);
+document.getElementById("logoutButton").addEventListener("click", lockDashboard);
+</script>
+</body>
+</html>
