@@ -48,6 +48,10 @@ button.danger{background:#8f1d2a;color:white}
 .metric .label{color:var(--muted);font-size:14px}
 .metric .value{font-size:32px;font-weight:bold;margin-top:13px;overflow-wrap:anywhere;line-height:1.15;color:#8f1d2a}
 .metric .note{font-size:12px;color:var(--muted);margin-top:8px}
+.attendance-total{max-width:760px;margin:22px auto 20px;padding:26px 18px;text-align:center;background:linear-gradient(145deg,#e7f8ed,#f4fff7);border:2px solid #17834b;border-radius:18px;box-shadow:0 8px 24px #17834b18}
+.attendance-label{font-size:17px;font-weight:800;letter-spacing:1.5px;color:#116c3d}
+.attendance-value{font-size:clamp(48px,7vw,76px);line-height:1.08;font-weight:900;color:#08783e;margin:12px 0}
+.attendance-note{font-size:13px;color:#276747}
 .formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;padding:15px;background:#fff8ed;border:1px solid #eadbd0;border-radius:12px;margin:14px 0}
 .tablewrap{overflow-x:auto;margin-top:14px;border:1px solid #eadbd0;border-radius:11px}
 table{border-collapse:collapse;width:100%;min-width:570px;font-size:13px;background:#ffffff}
@@ -110,6 +114,11 @@ footer{color:var(--muted);font-size:12px;margin-top:26px;line-height:1.6;padding
    <article class="metric"><div class="label">Duplicate Scans</div><div class="value" id="duplicates">—</div><div class="note">Previously scanned tickets</div></article>
    <article class="metric"><div class="label">Invalid Scans</div><div class="value" id="invalid">—</div><div class="note">Unrecognized tickets</div></article>
   </div>
+  <article class="attendance-total" aria-live="polite">
+   <div class="attendance-label">ACTUAL VISITORS ATTENDED</div>
+   <div class="attendance-value" id="actualAttended">—</div>
+   <div class="attendance-note">Total people admitted through accepted ticket check-ins</div>
+  </article>
   <div class="panel small">Statistics refresh every 30 seconds. Expected visitors are estimates, not a verified physical headcount.</div>
  </section>
 
@@ -222,11 +231,16 @@ async function loadDashboard() {
       tickets: s.total_tickets,
       expected: s.expected_visitors,
       checked: s.unique_tickets_scanned,
+      actualAttended: s.actual_people_entered ?? s.actual_visitors_attended ?? s.total_people_entered,
       accepted: s.accepted_scans,
       duplicates: s.duplicate_scans,
       invalid: s.invalid_scans
     };
     for (const [id, value] of Object.entries(values)) {
+      if (value === undefined || value === null || value === "") {
+        $(id).textContent = "—";
+        continue;
+      }
       const number = Number(value);
       if (!Number.isFinite(number)) throw new Error("Unexpected dashboard data.");
       $(id).textContent = number.toLocaleString("en-IN");
