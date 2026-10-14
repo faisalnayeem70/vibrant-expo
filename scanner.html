@@ -1,106 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vibrant Expo — Staff Scanner</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; padding: 20px; min-height: 100vh;
-      font-family: Arial, sans-serif; color: #222;
-      background: linear-gradient(135deg,#ffe2cc,#e5c9ff,#c4f0f7);
-    }
-    main {
-      max-width: 480px; margin: auto; padding: 22px;
-      background: white; border-radius: 20px;
-      box-shadow: 0 10px 35px #0002;
-    }
-    h1 { text-align: center; color: #8114bc; margin: 0 0 5px; }
-    p { text-align: center; color: #555; }
-    label { display: block; margin-top: 18px; font-weight: bold; }
-    input, button {
-      width: 100%; padding: 14px; margin-top: 8px;
-      border-radius: 10px; font-size: 16px;
-    }
-    input { border: 1px solid #bbb; }
-    button {
-      border: 0; background: #7816b4; color: white;
-      font-weight: bold; cursor: pointer;
-    }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    #reader { margin-top: 18px; width: 100%; }
-    #status, #loginStatus {
-      margin-top: 18px; padding: 18px 12px;
-      border-radius: 12px; text-align: center;
-      font-size: 19px; font-weight: bold; overflow-wrap: anywhere;
-    }
-    .idle { background: #eee; color: #333; }
-    .accepted { background: #c9f7d6; color: #075c25; }
-    .duplicate { background: #fff0b8; color: #795200; }
-    .invalid { background: #ffd5d5; color: #a00000; }
-    .info { font-size: 13px; }
-    .count-grid {
-      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px; margin-top: 10px;
-    }
-    .count-btn {
-      margin: 0; padding: 13px 0; background: #f0e3fa;
-      color: #65109b; border: 2px solid transparent;
-    }
-    .count-btn.selected {
-      background: #7816b4; color: #fff; border-color: #4e087b;
-      box-shadow: 0 0 0 2px #e8d2f8;
-    }
-    .count-summary {
-      margin-top: 10px; text-align: center; padding: 12px;
-      border-radius: 10px; background: #f7f0fc; color: #5f1689;
-      font-weight: bold;
-    }
-    .stats {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-      margin-top: 16px;
-    }
-    .stat {
-      background: #f8f4fb; border: 1px solid #eadcf5;
-      border-radius: 12px; padding: 13px 8px; text-align: center;
-    }
-    .stat strong { display: block; font-size: 24px; color: #7816b4; }
-    .stat span { font-size: 12px; color: #555; }
-    .small { font-size: 12px; color: #666; line-height: 1.4; }
-    .top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .top-row h1 { flex: 1; }
-    .logout { width: auto; padding: 9px 12px; margin: 0; font-size: 13px; background: #eee; color: #5f1689; }
-    [hidden] { display: none !important; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vibrant Expo — Live Entry Scanner</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:14px;min-height:100vh;font-family:Arial,sans-serif;color:#222;background:linear-gradient(135deg,#ffe2cc,#e5c9ff,#c4f0f7)}
+main{max-width:520px;margin:auto;padding:18px;background:#fff;border-radius:20px;box-shadow:0 10px 35px #0002}
+h1{text-align:center;color:#8114bc;margin:0 0 4px;font-size:27px}
+p{text-align:center;color:#555;margin:6px 0 14px}
+label{display:block;margin-top:14px;font-weight:bold}
+input,button{width:100%;padding:13px;margin-top:8px;border-radius:10px;font-size:16px}
+input{border:1px solid #bbb}
+button{border:0;background:#7816b4;color:white;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+.hidden{display:none!important}
+#reader{margin-top:12px;width:100%;overflow:hidden;border-radius:14px}
+.status{margin-top:12px;padding:14px 10px;border-radius:12px;text-align:center;font-size:17px;font-weight:bold;overflow-wrap:anywhere}
+.idle{background:#eee;color:#333}.accepted{background:#c9f7d6;color:#075c25}.duplicate{background:#fff0b8;color:#795200}.invalid{background:#ffd5d5;color:#a00000}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat{background:#f8f4fb;border:1px solid #eadcf5;border-radius:12px;padding:12px 6px;text-align:center}
+.stat strong{display:block;font-size:25px;color:#7816b4}.stat span{font-size:12px;color:#555}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.top p{margin:0;text-align:left;font-size:13px}
+.logout{width:auto;margin:0;padding:8px 11px;font-size:12px;background:#eee;color:#5f1689}
+.hint{font-size:12px;line-height:1.4}
+.modal-backdrop{position:fixed;inset:0;background:#1a0929b8;display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}
+.modal{width:100%;max-width:410px;max-height:90vh;overflow:auto;background:white;border-radius:20px;padding:22px;box-shadow:0 20px 60px #0005}
+.modal h2{text-align:center;color:#7816b4;margin:0 0 6px}
+.modal p{margin:4px 0 12px}
+.count-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}
+.count-btn{margin:0;padding:14px 0;background:#f0e3fa;color:#65109b;border:2px solid transparent}
+.count-btn.selected{background:#7816b4;color:#fff;border-color:#4e087b;box-shadow:0 0 0 2px #e8d2f8}
+.summary{margin-top:10px;text-align:center;padding:11px;border-radius:10px;background:#f7f0fc;color:#5f1689;font-weight:bold}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.secondary{background:#eee;color:#5f1689}
+#loginScreen{padding:10px 0}
+</style>
 </head>
 <body>
 <main>
   <h1>VIBRANT EXPO</h1>
-  <p>Season 01 · Entrance Scanner</p>
+  <p>Season 01 · Live Entrance Scanner</p>
 
   <section id="loginScreen">
     <label for="loginPin">Staff Scanner PIN</label>
-    <input id="loginPin" type="password" inputmode="numeric"
-           autocomplete="current-password" placeholder="Enter staff PIN">
+    <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter staff PIN">
     <button id="loginButton">LOGIN TO SCANNER</button>
-    <div id="loginStatus" class="idle" role="status" aria-live="polite">
-      Enter your staff PIN to continue
-    </div>
+    <div id="loginStatus" class="status idle">Enter your staff PIN to continue</div>
   </section>
 
-  <section id="scannerScreen" hidden>
-    <div class="top-row">
-      <p id="staffWelcome">Scanner logged in</p>
+  <section id="scannerScreen" class="hidden">
+    <div class="top">
+      <p id="staffWelcome">Camera scanner ready</p>
       <button id="logoutButton" class="logout" type="button">LOG OUT</button>
     </div>
-
     <label for="staff">Scanner name</label>
     <input id="staff" maxlength="40" value="Scanner 01" autocomplete="off">
+    <div id="reader"></div>
+    <div id="status" class="status idle">Starting camera…</div>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><strong id="ticketTotal">—</strong><span>Total tickets accepted</span></div>
+      <div class="stat"><strong id="peopleTotal">—</strong><span>Total people admitted</span></div>
+    </div>
+    <p class="hint">Keep the ticket QR inside the camera frame. After each valid scan, enter the group size in the popup; the scanner will resume automatically.</p>
+  </section>
+</main>
 
-    <label>How many people are entering on this ticket?</label>
-    <div class="count-grid" id="countGrid" aria-label="People entering">
+<div id="headcountModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h2 id="modalTitle">Ticket detected</h2>
+    <p id="modalSubtitle">How many people are entering on this ticket?</p>
+    <div class="count-grid" id="countGrid">
       <button type="button" class="count-btn" data-count="1">1</button>
       <button type="button" class="count-btn" data-count="2">2</button>
       <button type="button" class="count-btn" data-count="3">3</button>
@@ -111,251 +84,197 @@
       <button type="button" class="count-btn selected" data-count="8" aria-pressed="true">8</button>
       <button type="button" class="count-btn" data-count="9">9</button>
     </div>
-    <label for="customCount">Or enter a custom number (10 or more)</label>
-    <input id="customCount" type="number" inputmode="numeric" min="10"
-           step="1" placeholder="Custom headcount (optional)">
-    <div class="count-summary" id="countSummary">Selected headcount: 8 people</div>
-
-    <button id="start">START CAMERA SCANNER</button>
-    <button id="stop" disabled>STOP SCANNER</button>
-
-    <div class="stats" aria-live="polite">
-      <div class="stat">
-        <strong id="ticketTotal">—</strong>
-        <span>Total tickets accepted</span>
-      </div>
-      <div class="stat">
-        <strong id="peopleTotal">—</strong>
-        <span>Total people admitted</span>
-      </div>
+    <label for="customCount">Custom number (10 or more)</label>
+    <input id="customCount" type="number" inputmode="numeric" min="10" max="1000" step="1" placeholder="Enter group size">
+    <div class="summary" id="countSummary">Selected headcount: 8 people</div>
+    <div class="modal-actions">
+      <button id="confirmCount">CONFIRM ENTRY</button>
+      <button id="cancelCount" class="secondary">CANCEL</button>
     </div>
-    <p class="small">Totals are supplied by the server. Duplicate tickets do not add to either total.</p>
-
-    <div id="reader"></div>
-    <div id="status" class="idle" role="status" aria-live="polite">
-      Confirm headcount, then start scanning
-    </div>
-    <p class="info">Green = accepted · Yellow = duplicate · Red = invalid</p>
-  </section>
-</main>
+  </div>
+</div>
 
 <script>
 (() => {
-  const FUNCTION_URL =
-    "https://jzfjizjldcazysnqlpjr.supabase.co/functions/v1/expo-scanner";
+  const FUNCTION_URL = "https://jzfjizjldcazysnqlpjr.supabase.co/functions/v1/expo-scanner";
   const $ = id => document.getElementById(id);
-  let scanner = null;
-  let running = false;
-  let busy = false;
-  let lastToken = "";
-  let lastTime = 0;
-  let selectedCount = 8;
-  let scannerPin = "";
+  let scanner = null, running = false, busy = false, scannerPin = "";
+  let pendingToken = "", selectedCount = 8, lastToken = "", lastTime = 0;
 
   function show(message, type) {
     $("status").textContent = message;
-    $("status").className = type;
+    $("status").className = "status " + type;
   }
-
-  function currentCount() {
-    const customRaw = $("customCount").value.trim();
-    if (customRaw !== "") {
-      const custom = Number(customRaw);
-      if (!Number.isSafeInteger(custom) || custom < 10 || custom > 1000) return null;
-      return custom;
+  function countValue() {
+    const raw = $("customCount").value.trim();
+    if (raw) {
+      const n = Number(raw);
+      return Number.isSafeInteger(n) && n >= 10 && n <= 1000 ? n : null;
     }
     return selectedCount;
   }
-
   function updateCountUI() {
-    const count = currentCount();
-    document.querySelectorAll(".count-btn").forEach(button => {
-      const active = $("customCount").value.trim() === "" &&
-        Number(button.dataset.count) === selectedCount;
-      button.classList.toggle("selected", active);
-      button.setAttribute("aria-pressed", active ? "true" : "false");
+    document.querySelectorAll(".count-btn").forEach(b => {
+      const active = !$("customCount").value.trim() && Number(b.dataset.count) === selectedCount;
+      b.classList.toggle("selected", active);
+      b.setAttribute("aria-pressed", active ? "true" : "false");
     });
-    $("countSummary").textContent = count === null
+    const n = countValue();
+    $("countSummary").textContent = n === null
       ? "Enter a whole number from 10 to 1000"
-      : `Selected headcount: ${count} ${count === 1 ? "person" : "people"}`;
+      : `Selected headcount: ${n} ${n === 1 ? "person" : "people"}`;
+    $("confirmCount").disabled = n === null || busy;
   }
-
-  function updateServerTotals(result) {
-    if (result.total_accepted_tickets !== null &&
-        result.total_accepted_tickets !== undefined) {
-      $("ticketTotal").textContent = result.total_accepted_tickets;
-    }
-    if (result.total_people_entered !== null &&
-        result.total_people_entered !== undefined) {
-      $("peopleTotal").textContent = result.total_people_entered;
-    }
+  function updateTotals(r) {
+    if (r.total_accepted_tickets != null) $("ticketTotal").textContent = r.total_accepted_tickets;
+    if (r.total_people_entered != null) $("peopleTotal").textContent = r.total_people_entered;
   }
-
-  async function verifyLogin(pin) {
+  async function post(payload) {
     const response = await fetch(FUNCTION_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "login", pin })
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
     });
-    const result = await response.json();
-    if (!response.ok || result.status !== "authenticated") {
-      throw new Error(response.status === 401 ? "Incorrect PIN. Please try again." :
-        (result.error || "Login failed. Please try again."));
-    }
+    const data = await response.json();
+    return {response, data};
   }
-
-  $("loginButton").addEventListener("click", async () => {
+  async function login() {
     const pin = $("loginPin").value.trim();
     if (!pin) {
       $("loginStatus").textContent = "ENTER STAFF PIN FIRST";
-      $("loginStatus").className = "invalid";
-      $("loginPin").focus();
-      return;
+      $("loginStatus").className = "status invalid";
+      $("loginPin").focus(); return;
     }
     $("loginButton").disabled = true;
-    $("loginStatus").textContent = "Checking PIN…";
-    $("loginStatus").className = "idle";
+    $("loginStatus").textContent = "Verifying PIN…";
     try {
-      await verifyLogin(pin);
+      const {response, data} = await post({action:"login", pin});
+      if (!response.ok || data.status !== "authenticated") throw new Error(response.status === 401 ? "Incorrect PIN. Try again." : (data.error || "Login failed."));
       scannerPin = pin;
       $("loginPin").value = "";
-      $("loginScreen").hidden = true;
-      $("scannerScreen").hidden = false;
-      $("staffWelcome").textContent = "Scanner login successful";
-      updateCountUI();
-      show("Login successful — confirm headcount to begin", "idle");
-    } catch (error) {
-      $("loginStatus").textContent = error.message || "Login failed";
-      $("loginStatus").className = "invalid";
-    } finally {
-      $("loginButton").disabled = false;
-    }
-  });
-
-  document.querySelectorAll(".count-btn").forEach(button => {
-    button.addEventListener("click", () => {
-      selectedCount = Number(button.dataset.count);
-      $("customCount").value = "";
-      updateCountUI();
-    });
-  });
-  $("customCount").addEventListener("input", updateCountUI);
-  updateCountUI();
-
-  async function handleScan(decodedText) {
-    const token = decodedText.trim();
-    const now = Date.now();
-    if (busy || (token === lastToken && now - lastTime < 2500)) return;
-
-    const peopleCount = currentCount();
-    if (!Number.isSafeInteger(peopleCount) || peopleCount < 1 || peopleCount > 1000) {
-      show("SELECT A VALID HEADCOUNT BEFORE SCANNING", "invalid");
-      return;
-    }
-
-    lastToken = token;
-    lastTime = now;
-    busy = true;
-    try {
-      const response = await fetch(FUNCTION_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pin: scannerPin,
-          ticket_token: token,
-          scanner_label: $("staff").value.trim() || "Scanner",
-          people_count: peopleCount
-        })
-      });
-      const result = await response.json();
-
-      if (response.status === 401) {
-        scannerPin = "";
-        if (scanner && running) {
-          try { await scanner.stop(); await scanner.clear(); } catch (_) {}
-        }
-        scanner = null; running = false;
-        $("start").disabled = false; $("stop").disabled = true;
-        $("scannerScreen").hidden = true; $("loginScreen").hidden = false;
-        $("loginStatus").textContent = "Session expired or PIN rejected. Please log in again.";
-        $("loginStatus").className = "invalid";
-      } else if (!response.ok) {
-        show(result.error || "SERVER ERROR — TRY AGAIN", "invalid");
-      } else if (result.status === "accepted") {
-        updateServerTotals(result);
-        show(`✓ ENTRY ACCEPTED — ${peopleCount} ${peopleCount === 1 ? "PERSON" : "PEOPLE"} ADMITTED`, "accepted");
-      } else if (result.status === "duplicate") {
-        updateServerTotals(result);
-        show("⚠ ALREADY SCANNED — TOTALS NOT INCREASED", "duplicate");
-      } else if (result.status === "invalid") {
-        show("✕ INVALID TICKET", "invalid");
-      } else {
-        show("CHECK-IN ERROR — PLEASE TRY AGAIN", "invalid");
-      }
-    } catch (_) {
-      show("CONNECTION ERROR — CHECK INTERNET", "invalid");
-    } finally {
-      busy = false;
-    }
+      $("loginScreen").classList.add("hidden");
+      $("scannerScreen").classList.remove("hidden");
+      $("staffWelcome").textContent = "Logged in · Camera starting";
+      await startCamera();
+    } catch (e) {
+      $("loginStatus").textContent = e.message || "Could not log in";
+      $("loginStatus").className = "status invalid";
+    } finally { $("loginButton").disabled = false; }
   }
-
-  $("start").addEventListener("click", async () => {
-    if (running) return;
-    if (!scannerPin) {
-      $("scannerScreen").hidden = true;
-      $("loginScreen").hidden = false;
-      return;
-    }
-    const count = currentCount();
-    if (!Number.isSafeInteger(count) || count < 1 || count > 1000) {
-      show("ENTER A VALID HEADCOUNT FIRST", "invalid");
-      $("customCount").focus();
-      return;
-    }
-    if (typeof Html5Qrcode === "undefined") {
-      show("SCANNER LIBRARY FAILED TO LOAD", "invalid");
+  async function startCamera() {
+    if (!scannerPin || running || typeof Html5Qrcode === "undefined") {
+      if (typeof Html5Qrcode === "undefined") show("Scanner library failed to load. Check internet.", "invalid");
       return;
     }
     scanner = new Html5Qrcode("reader");
     try {
-      await scanner.start(
-        { facingMode: "environment" },
-        { fps: 12, qrbox: { width: 250, height: 250 } },
-        handleScan,
-        () => {}
-      );
+      await scanner.start({facingMode:"environment"}, {fps:12, qrbox:{width:250,height:250}}, onDecoded, () => {});
       running = true;
-      $("start").disabled = true;
-      $("stop").disabled = false;
-      show("CAMERA READY — CONFIRM HEADCOUNT FOR EACH TICKET", "idle");
+      $("staffWelcome").textContent = "Camera live · Ready for tickets";
+      show("CAMERA LIVE — SCAN NEXT TICKET", "idle");
     } catch (_) {
       scanner = null;
       show("CAMERA FAILED — ALLOW CAMERA PERMISSION", "invalid");
     }
-  });
-
-  $("stop").addEventListener("click", async () => {
+  }
+  async function onDecoded(decodedText) {
+    if (busy || $("headcountModal").classList.contains("hidden") === false) return;
+    const token = decodedText.trim(), now = Date.now();
+    if (token === lastToken && now - lastTime < 2500) return;
+    busy = true;
+    lastToken = token; lastTime = now;
+    try {
+      // Validate ticket first using the database function with a placeholder count.
+      // A valid first scan must not be recorded until staff confirm the actual headcount.
+      // Therefore ask the backend to classify the ticket through a dedicated non-writing validation
+      // endpoint would be ideal; current RPC only performs check-in. We instead open the modal and
+      // submit once after staff selects the count. The database rejects duplicates atomically.
+      pendingToken = token;
+      selectedCount = 8;
+      $("customCount").value = "";
+      $("modalTitle").textContent = "Ticket detected";
+      $("modalSubtitle").textContent = "How many people are entering on this ticket?";
+      updateCountUI();
+      $("headcountModal").classList.remove("hidden");
+      $("confirmCount").focus();
+      show("TICKET DETECTED — CONFIRM GROUP SIZE", "idle");
+    } finally { busy = false; }
+  }
+  async function confirmEntry() {
+    if (!pendingToken || busy) return;
+    const peopleCount = countValue();
+    if (!Number.isSafeInteger(peopleCount) || peopleCount < 1 || peopleCount > 1000) {
+      updateCountUI(); return;
+    }
+    busy = true;
+    $("confirmCount").disabled = true;
+    $("cancelCount").disabled = true;
+    $("modalTitle").textContent = "Saving entry…";
+    $("modalSubtitle").textContent = "Please wait; keep this screen open.";
+    try {
+      const {response, data} = await post({
+        pin: scannerPin, ticket_token: pendingToken,
+        scanner_label: $("staff").value.trim() || "Scanner",
+        people_count: peopleCount
+      });
+      if (response.status === 401) {
+        await logout("Session/PIN rejected. Please log in again.");
+        return;
+      }
+      if (!response.ok) throw new Error(data.error || "Could not save entry.");
+      updateTotals(data);
+      $("headcountModal").classList.add("hidden");
+      if (data.status === "accepted") {
+        show(`✓ ENTRY ACCEPTED — ${peopleCount} ${peopleCount === 1 ? "PERSON" : "PEOPLE"} ADMITTED`, "accepted");
+      } else if (data.status === "duplicate") {
+        show("⚠ ALREADY SCANNED — TOTALS NOT INCREASED", "duplicate");
+      } else if (data.status === "invalid") {
+        show("✕ INVALID TICKET — NO ENTRY RECORDED", "invalid");
+      } else {
+        show("CHECK-IN ERROR — PLEASE TRY AGAIN", "invalid");
+      }
+      pendingToken = "";
+      // Camera remains running; next QR can be detected automatically.
+    } catch (e) {
+      $("headcountModal").classList.add("hidden");
+      show((e.message || "Connection error") + " — SCAN THE TICKET AGAIN IF NEEDED", "invalid");
+      pendingToken = "";
+    } finally {
+      busy = false;
+      $("confirmCount").disabled = false;
+      $("cancelCount").disabled = false;
+    }
+  }
+  async function cancelEntry() {
+    if (busy) return;
+    pendingToken = "";
+    $("headcountModal").classList.add("hidden");
+    show("ENTRY CANCELLED — SCAN TICKET AGAIN WHEN READY", "idle");
+  }
+  async function logout(message = "Logged out. Enter staff PIN to continue.") {
+    scannerPin = ""; pendingToken = ""; busy = false;
     if (scanner && running) {
       try { await scanner.stop(); await scanner.clear(); } catch (_) {}
     }
-    scanner = null;
-    running = false;
-    $("start").disabled = false;
-    $("stop").disabled = true;
-    show("SCANNER STOPPED", "idle");
-  });
+    scanner = null; running = false;
+    $("headcountModal").classList.add("hidden");
+    $("scannerScreen").classList.add("hidden");
+    $("loginScreen").classList.remove("hidden");
+    $("loginStatus").textContent = message;
+    $("loginStatus").className = "status idle";
+  }
 
-  $("logoutButton").addEventListener("click", async () => {
-    if (scanner && running) {
-      try { await scanner.stop(); await scanner.clear(); } catch (_) {}
-    }
-    scanner = null; running = false; busy = false; scannerPin = "";
-    $("start").disabled = false; $("stop").disabled = true;
-    $("scannerScreen").hidden = true;
-    $("loginScreen").hidden = false;
-    $("loginStatus").textContent = "Logged out. Enter staff PIN to continue.";
-    $("loginStatus").className = "idle";
-  });
+  document.querySelectorAll(".count-btn").forEach(b => b.addEventListener("click", () => {
+    selectedCount = Number(b.dataset.count);
+    $("customCount").value = "";
+    updateCountUI();
+  }));
+  $("customCount").addEventListener("input", updateCountUI);
+  $("loginButton").addEventListener("click", login);
+  $("loginPin").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+  $("confirmCount").addEventListener("click", confirmEntry);
+  $("cancelCount").addEventListener("click", cancelEntry);
+  $("logoutButton").addEventListener("click", () => logout());
+  updateCountUI();
 })();
 </script>
 </body>
