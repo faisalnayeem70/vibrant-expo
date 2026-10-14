@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vibrant Expo — Entry Scanner</title>
+  <title>Vibrant Expo — Staff Scanner</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     * { box-sizing: border-box; }
@@ -31,11 +31,10 @@
     }
     button:disabled { opacity: .55; cursor: not-allowed; }
     #reader { margin-top: 18px; width: 100%; }
-    #status {
-      margin-top: 18px; padding: 20px 12px;
+    #status, #loginStatus {
+      margin-top: 18px; padding: 18px 12px;
       border-radius: 12px; text-align: center;
-      font-size: 21px; font-weight: bold;
-      overflow-wrap: anywhere;
+      font-size: 19px; font-weight: bold; overflow-wrap: anywhere;
     }
     .idle { background: #eee; color: #333; }
     .accepted { background: #c9f7d6; color: #075c25; }
@@ -70,6 +69,10 @@
     .stat strong { display: block; font-size: 24px; color: #7816b4; }
     .stat span { font-size: 12px; color: #555; }
     .small { font-size: 12px; color: #666; line-height: 1.4; }
+    .top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .top-row h1 { flex: 1; }
+    .logout { width: auto; padding: 9px 12px; margin: 0; font-size: 13px; background: #eee; color: #5f1689; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
@@ -77,57 +80,69 @@
   <h1>VIBRANT EXPO</h1>
   <p>Season 01 · Entrance Scanner</p>
 
-  <label for="pin">Staff Scanner PIN</label>
-  <input id="pin" type="password" inputmode="numeric"
-         autocomplete="current-password" placeholder="Enter scanner PIN">
-
-  <label for="staff">Scanner name</label>
-  <input id="staff" maxlength="40" value="Scanner 01" autocomplete="off">
-
-  <label>How many people are entering on this ticket?</label>
-  <div class="count-grid" id="countGrid" aria-label="People entering">
-    <button type="button" class="count-btn" data-count="1">1</button>
-    <button type="button" class="count-btn" data-count="2">2</button>
-    <button type="button" class="count-btn" data-count="3">3</button>
-    <button type="button" class="count-btn" data-count="4">4</button>
-    <button type="button" class="count-btn" data-count="5">5</button>
-    <button type="button" class="count-btn" data-count="6">6</button>
-    <button type="button" class="count-btn" data-count="7">7</button>
-    <button type="button" class="count-btn selected" data-count="8" aria-pressed="true">8</button>
-    <button type="button" class="count-btn" data-count="9">9</button>
-  </div>
-  <label for="customCount">Or enter a custom number (10 or more)</label>
-  <input id="customCount" type="number" inputmode="numeric" min="10"
-         step="1" placeholder="Custom headcount (optional)">
-  <div class="count-summary" id="countSummary">Selected headcount: 8 people</div>
-
-  <button id="start">START CAMERA SCANNER</button>
-  <button id="stop" disabled>STOP SCANNER</button>
-
-  <div class="stats" aria-live="polite">
-    <div class="stat">
-      <strong id="ticketTotal">—</strong>
-      <span>Tickets accepted this session</span>
+  <section id="loginScreen">
+    <label for="loginPin">Staff Scanner PIN</label>
+    <input id="loginPin" type="password" inputmode="numeric"
+           autocomplete="current-password" placeholder="Enter staff PIN">
+    <button id="loginButton">LOGIN TO SCANNER</button>
+    <div id="loginStatus" class="idle" role="status" aria-live="polite">
+      Enter your staff PIN to continue
     </div>
-    <div class="stat">
-      <strong id="peopleTotal">—</strong>
-      <span>People admitted (server total)</span>
-    </div>
-  </div>
-  <p class="small">Live totals appear when the scanner server returns authoritative totals. A browser-only count is not treated as the official total.</p>
+  </section>
 
-  <div id="reader"></div>
-  <div id="status" class="idle" role="status" aria-live="polite">
-    Enter PIN, confirm headcount, and start the scanner
-  </div>
-  <p class="info">Green = accepted · Yellow = duplicate · Red = invalid</p>
+  <section id="scannerScreen" hidden>
+    <div class="top-row">
+      <p id="staffWelcome">Scanner logged in</p>
+      <button id="logoutButton" class="logout" type="button">LOG OUT</button>
+    </div>
+
+    <label for="staff">Scanner name</label>
+    <input id="staff" maxlength="40" value="Scanner 01" autocomplete="off">
+
+    <label>How many people are entering on this ticket?</label>
+    <div class="count-grid" id="countGrid" aria-label="People entering">
+      <button type="button" class="count-btn" data-count="1">1</button>
+      <button type="button" class="count-btn" data-count="2">2</button>
+      <button type="button" class="count-btn" data-count="3">3</button>
+      <button type="button" class="count-btn" data-count="4">4</button>
+      <button type="button" class="count-btn" data-count="5">5</button>
+      <button type="button" class="count-btn" data-count="6">6</button>
+      <button type="button" class="count-btn" data-count="7">7</button>
+      <button type="button" class="count-btn selected" data-count="8" aria-pressed="true">8</button>
+      <button type="button" class="count-btn" data-count="9">9</button>
+    </div>
+    <label for="customCount">Or enter a custom number (10 or more)</label>
+    <input id="customCount" type="number" inputmode="numeric" min="10"
+           step="1" placeholder="Custom headcount (optional)">
+    <div class="count-summary" id="countSummary">Selected headcount: 8 people</div>
+
+    <button id="start">START CAMERA SCANNER</button>
+    <button id="stop" disabled>STOP SCANNER</button>
+
+    <div class="stats" aria-live="polite">
+      <div class="stat">
+        <strong id="ticketTotal">—</strong>
+        <span>Total tickets accepted</span>
+      </div>
+      <div class="stat">
+        <strong id="peopleTotal">—</strong>
+        <span>Total people admitted</span>
+      </div>
+    </div>
+    <p class="small">Totals are supplied by the server. Duplicate tickets do not add to either total.</p>
+
+    <div id="reader"></div>
+    <div id="status" class="idle" role="status" aria-live="polite">
+      Confirm headcount, then start scanning
+    </div>
+    <p class="info">Green = accepted · Yellow = duplicate · Red = invalid</p>
+  </section>
 </main>
 
 <script>
 (() => {
   const FUNCTION_URL =
     "https://jzfjizjldcazysnqlpjr.supabase.co/functions/v1/expo-scanner";
-
   const $ = id => document.getElementById(id);
   let scanner = null;
   let running = false;
@@ -135,7 +150,7 @@
   let lastToken = "";
   let lastTime = 0;
   let selectedCount = 8;
-  let acceptedThisSession = 0;
+  let scannerPin = "";
 
   function show(message, type) {
     $("status").textContent = message;
@@ -146,7 +161,7 @@
     const customRaw = $("customCount").value.trim();
     if (customRaw !== "") {
       const custom = Number(customRaw);
-      if (!Number.isInteger(custom) || custom < 10) return null;
+      if (!Number.isSafeInteger(custom) || custom < 10 || custom > 1000) return null;
       return custom;
     }
     return selectedCount;
@@ -161,9 +176,61 @@
       button.setAttribute("aria-pressed", active ? "true" : "false");
     });
     $("countSummary").textContent = count === null
-      ? "Enter a whole number of 10 or more"
+      ? "Enter a whole number from 10 to 1000"
       : `Selected headcount: ${count} ${count === 1 ? "person" : "people"}`;
   }
+
+  function updateServerTotals(result) {
+    if (result.total_accepted_tickets !== null &&
+        result.total_accepted_tickets !== undefined) {
+      $("ticketTotal").textContent = result.total_accepted_tickets;
+    }
+    if (result.total_people_entered !== null &&
+        result.total_people_entered !== undefined) {
+      $("peopleTotal").textContent = result.total_people_entered;
+    }
+  }
+
+  async function verifyLogin(pin) {
+    const response = await fetch(FUNCTION_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "login", pin })
+    });
+    const result = await response.json();
+    if (!response.ok || result.status !== "authenticated") {
+      throw new Error(response.status === 401 ? "Incorrect PIN. Please try again." :
+        (result.error || "Login failed. Please try again."));
+    }
+  }
+
+  $("loginButton").addEventListener("click", async () => {
+    const pin = $("loginPin").value.trim();
+    if (!pin) {
+      $("loginStatus").textContent = "ENTER STAFF PIN FIRST";
+      $("loginStatus").className = "invalid";
+      $("loginPin").focus();
+      return;
+    }
+    $("loginButton").disabled = true;
+    $("loginStatus").textContent = "Checking PIN…";
+    $("loginStatus").className = "idle";
+    try {
+      await verifyLogin(pin);
+      scannerPin = pin;
+      $("loginPin").value = "";
+      $("loginScreen").hidden = true;
+      $("scannerScreen").hidden = false;
+      $("staffWelcome").textContent = "Scanner login successful";
+      updateCountUI();
+      show("Login successful — confirm headcount to begin", "idle");
+    } catch (error) {
+      $("loginStatus").textContent = error.message || "Login failed";
+      $("loginStatus").className = "invalid";
+    } finally {
+      $("loginButton").disabled = false;
+    }
+  });
 
   document.querySelectorAll(".count-btn").forEach(button => {
     button.addEventListener("click", () => {
@@ -175,21 +242,13 @@
   $("customCount").addEventListener("input", updateCountUI);
   updateCountUI();
 
-  function updateServerTotals(result) {
-    // These values must be calculated by the server/database, not the browser.
-    const tickets = result.total_accepted_tickets ?? result.accepted_tickets_total;
-    const people = result.total_people_entered ?? result.people_entered_total;
-    if (Number.isFinite(Number(tickets))) $("ticketTotal").textContent = Number(tickets);
-    if (Number.isFinite(Number(people))) $("peopleTotal").textContent = Number(people);
-  }
-
   async function handleScan(decodedText) {
     const token = decodedText.trim();
     const now = Date.now();
     if (busy || (token === lastToken && now - lastTime < 2500)) return;
 
     const peopleCount = currentCount();
-    if (!Number.isInteger(peopleCount) || peopleCount < 1) {
+    if (!Number.isSafeInteger(peopleCount) || peopleCount < 1 || peopleCount > 1000) {
       show("SELECT A VALID HEADCOUNT BEFORE SCANNING", "invalid");
       return;
     }
@@ -197,39 +256,43 @@
     lastToken = token;
     lastTime = now;
     busy = true;
-
     try {
       const response = await fetch(FUNCTION_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          pin: $("pin").value,
+          pin: scannerPin,
           ticket_token: token,
           scanner_label: $("staff").value.trim() || "Scanner",
           people_count: peopleCount
         })
       });
-
       const result = await response.json();
 
       if (response.status === 401) {
-        show("PIN INCORRECT — CHECK STAFF PIN", "invalid");
+        scannerPin = "";
+        if (scanner && running) {
+          try { await scanner.stop(); await scanner.clear(); } catch (_) {}
+        }
+        scanner = null; running = false;
+        $("start").disabled = false; $("stop").disabled = true;
+        $("scannerScreen").hidden = true; $("loginScreen").hidden = false;
+        $("loginStatus").textContent = "Session expired or PIN rejected. Please log in again.";
+        $("loginStatus").className = "invalid";
       } else if (!response.ok) {
         show(result.error || "SERVER ERROR — TRY AGAIN", "invalid");
       } else if (result.status === "accepted") {
-        acceptedThisSession += 1;
-        $("ticketTotal").textContent = acceptedThisSession;
         updateServerTotals(result);
         show(`✓ ENTRY ACCEPTED — ${peopleCount} ${peopleCount === 1 ? "PERSON" : "PEOPLE"} ADMITTED`, "accepted");
       } else if (result.status === "duplicate") {
         updateServerTotals(result);
-        show("⚠ ALREADY SCANNED — DO NOT ADD TO THE COUNT", "duplicate");
+        show("⚠ ALREADY SCANNED — TOTALS NOT INCREASED", "duplicate");
       } else if (result.status === "invalid") {
         show("✕ INVALID TICKET", "invalid");
       } else {
-        show("UNEXPECTED RESPONSE — CHECK SERVER", "invalid");
+        show("CHECK-IN ERROR — PLEASE TRY AGAIN", "invalid");
       }
-    } catch (error) {
+    } catch (_) {
       show("CONNECTION ERROR — CHECK INTERNET", "invalid");
     } finally {
       busy = false;
@@ -238,13 +301,13 @@
 
   $("start").addEventListener("click", async () => {
     if (running) return;
-    if (!$("pin").value.trim()) {
-      show("ENTER STAFF PIN FIRST", "invalid");
-      $("pin").focus();
+    if (!scannerPin) {
+      $("scannerScreen").hidden = true;
+      $("loginScreen").hidden = false;
       return;
     }
     const count = currentCount();
-    if (!Number.isInteger(count) || count < 1) {
+    if (!Number.isSafeInteger(count) || count < 1 || count > 1000) {
       show("ENTER A VALID HEADCOUNT FIRST", "invalid");
       $("customCount").focus();
       return;
@@ -253,7 +316,6 @@
       show("SCANNER LIBRARY FAILED TO LOAD", "invalid");
       return;
     }
-
     scanner = new Html5Qrcode("reader");
     try {
       await scanner.start(
@@ -266,7 +328,7 @@
       $("start").disabled = true;
       $("stop").disabled = false;
       show("CAMERA READY — CONFIRM HEADCOUNT FOR EACH TICKET", "idle");
-    } catch (error) {
+    } catch (_) {
       scanner = null;
       show("CAMERA FAILED — ALLOW CAMERA PERMISSION", "invalid");
     }
@@ -274,16 +336,25 @@
 
   $("stop").addEventListener("click", async () => {
     if (scanner && running) {
-      try {
-        await scanner.stop();
-        await scanner.clear();
-      } catch (error) {}
+      try { await scanner.stop(); await scanner.clear(); } catch (_) {}
     }
     scanner = null;
     running = false;
     $("start").disabled = false;
     $("stop").disabled = true;
     show("SCANNER STOPPED", "idle");
+  });
+
+  $("logoutButton").addEventListener("click", async () => {
+    if (scanner && running) {
+      try { await scanner.stop(); await scanner.clear(); } catch (_) {}
+    }
+    scanner = null; running = false; busy = false; scannerPin = "";
+    $("start").disabled = false; $("stop").disabled = true;
+    $("scannerScreen").hidden = true;
+    $("loginScreen").hidden = false;
+    $("loginStatus").textContent = "Logged out. Enter staff PIN to continue.";
+    $("loginStatus").className = "idle";
   });
 })();
 </script>
