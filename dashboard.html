@@ -181,6 +181,7 @@ let dashboardPin = "";
 let refreshTimer = null;
 let requestRunning = false;
 let sources = [];
+let reportCounts = new Map();
 let selectedSource = null;
 
 function status(message, good = false) {
@@ -437,8 +438,38 @@ $("copyLink").addEventListener("click", async () => {
 
 async function loadReports() {
   if (!dashboardPin) return;
-  await loadSources();
-  renderReports();
+  const tbody = $("reportRows");
+  tbody.replaceChildren();
+  const loadingRow = document.createElement("tr");
+  const loadingCell = document.createElement("td");
+  loadingCell.colSpan = 5;
+  loadingCell.textContent = "Loading source reports…";
+  loadingRow.appendChild(loadingCell);
+  tbody.appendChild(loadingRow);
+
+  try {
+    const [sourceResult, reportResult] = await Promise.all([
+      api(MARKETING_API, { action: "list" }),
+      api(MARKETING_API, { action: "reports" })
+    ]);
+    sources = Array.isArray(sourceResult.sources) ? sourceResult.sources : [];
+    reportCounts = new Map(
+      (Array.isArray(reportResult.reports) ? reportResult.reports : [])
+        .map(report => [report.source_id, report])
+    );
+    renderSources();
+    renderReports();
+    showStatus("Source reports updated " + new Date().toLocaleTimeString());
+  } catch (error) {
+    tbody.replaceChildren();
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 5;
+    td.textContent = error.message || "Could not load source reports.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    showStatus("Source reports failed to load.");
+  }
 }
 
 function renderReports() {
@@ -451,12 +482,13 @@ function renderReports() {
     tr.appendChild(td); tbody.appendChild(tr); return;
   }
   sources.forEach(source => {
+    const report = reportCounts.get(source.id) || {};
     const tr = document.createElement("tr");
     const values = [
       source.source_name,
       source.source_type,
-      "Pending",
-      "Pending"
+      Number(report.registrations ?? 0).toLocaleString("en-IN"),
+      Number(report.expected_visitors ?? 0).toLocaleString("en-IN")
     ];
     values.forEach(value => {
       const td = document.createElement("td");
@@ -473,7 +505,6 @@ function renderReports() {
     tr.appendChild(linkCell);
     tbody.appendChild(tr);
   });
-  $("reportRows").dataset.note = "Counts require a reporting endpoint.";
 }
 
 $("exportCsv").addEventListener("click", () => {
@@ -482,16 +513,24 @@ $("exportCsv").addEventListener("click", () => {
     return;
   }
   const rows = [["Source","Token","Type","Active","Registration link","Registrations","Expected visitors"]];
-  sources.forEach(s => rows.push([
-    s.source_name,s.source_token,s.source_type,s.is_active ? "Yes" : "No",
-    registrationLink(s),"Not loaded","Not loaded"
-  ]));
-  const csv = rows.map(row => row.map(value => '"' + String(value ?? "").replaceAll('"','""') + '"').join(",")).join("\r\n");
-  const blob = new Blob(["\uFEFF" + csv], {type:"text/csv;charset=utf-8"});
+  sources.forEach(s => {
+    const report = reportCounts.get(s.id) || {};
+    rows.push([
+      s.source_name, s.source_token, s.source_type, s.is_active ? "Yes" : "No",
+      registrationLink(s),
+      Number(report.registrations ?? 0),
+      Number(report.expected_visitors ?? 0)
+    ]);
+  });
+  const csv = rows.map(row => row.map(value => '"' + String(value ?? "").replaceAll('"','""') + '"').join(",")).join("\\r\\n");
+  const blob = new Blob(["\\uFEFF" + csv], {type:"text/csv;charset=utf-8"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "vibrant-expo-marketing-sources.csv";
-  a.click(); URL.revokeObjectURL(url);
+  a.href = url; a.download = "vibrant-expo-source-reports.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 });
 </script>
 </body>
