@@ -3,145 +3,205 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vibrant Expo | Admin Dashboard</title>
 <style>
-:root{color-scheme:dark;--bg:#10111b;--card:#1c1d2d;--text:#f7f7fb;--muted:#a6a8bd;--accent:#ffca55;--border:#34354b}
+:root{color-scheme:dark;--bg:#10111b;--card:#1c1d2d;--text:#f7f7fb;--muted:#a6a8bd;--accent:#ffca55;--border:#34354b;--green:#68dfaa;--red:#ff9292}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
 header{padding:22px 18px;background:#191a29;border-bottom:1px solid var(--border)}
-.wrap{max-width:1100px;margin:auto;padding:20px}
+.wrap{max-width:1150px;margin:auto;padding:20px}
 h1{margin:0;color:var(--accent);font-size:25px}
-.subtitle{color:var(--muted);margin-top:8px;font-size:13px}
+h2{font-size:20px;margin-top:0}
+.subtitle,.muted{color:var(--muted);font-size:13px}
+.subtitle{margin-top:8px}
 .panel,.metric{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
-.panel{max-width:430px;margin:35px auto}
-label{display:block;margin:15px 0 8px;color:var(--muted)}
-input{width:100%;padding:13px;border-radius:8px;border:1px solid var(--border);background:#10111b;color:white;font-size:16px}
-button{border:0;border-radius:8px;background:var(--accent);color:#171717;font-weight:bold;padding:12px 17px;cursor:pointer}
-.panel button{width:100%;margin-top:14px}
-#error{color:#ff9292;font-size:14px;margin-top:12px}
+.panel{margin:18px 0}
+.login{max-width:430px;margin:35px auto}
+label{display:block;margin:13px 0 7px;color:var(--muted);font-size:14px}
+input,select{width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);background:#10111b;color:white;font-size:15px}
+button{border:0;border-radius:8px;background:var(--accent);color:#171717;font-weight:bold;padding:11px 15px;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+button.secondary{background:#34354b;color:white}
+button.danger{background:#713b48;color:white}
+.login button{width:100%;margin-top:14px}
+#error{color:var(--red);font-size:14px;margin-top:12px}
 #app{display:none}
-.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
-.toolbar button{width:auto}
+.toolbar,.tabs,.actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.toolbar{margin:12px 0 20px}
 #status{color:var(--muted);font-size:13px;margin-left:auto}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.tabs{margin:20px 0}
+.tabs button.active{background:#fff0c2}
+.section{display:none}
+.section.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px}
 .metric .label{color:var(--muted);font-size:14px}
-.metric .value{font-size:34px;font-weight:bold;margin-top:14px;overflow-wrap:anywhere}
-.metric .note{font-size:12px;color:var(--muted);margin-top:8px}
+.metric .value{font-size:32px;font-weight:bold;margin-top:13px;overflow-wrap:anywhere}
+.metric .note{font-size:12px;color:var(--muted);margin-top:7px}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.tablewrap{overflow-x:auto;margin-top:14px}
+table{border-collapse:collapse;width:100%;min-width:570px;font-size:13px}
+th,td{text-align:left;padding:11px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+a{color:var(--accent);overflow-wrap:anywhere}
+.badge{display:inline-block;padding:4px 7px;border-radius:6px;background:#34354b;font-size:11px}
+#message{margin-top:12px;font-size:13px;white-space:pre-wrap}
+#message.ok{color:var(--green)}
+#message.bad{color:var(--red)}
+.qrbox{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin-top:16px}
+#qrImage{background:white;padding:10px;border-radius:8px;width:180px;height:180px;object-fit:contain;display:none}
+.small{font-size:12px;color:var(--muted);line-height:1.6}
 footer{color:var(--muted);font-size:12px;margin-top:22px;line-height:1.6}
-@media(max-width:480px){.wrap{padding:14px}.metric .value{font-size:29px}h1{font-size:22px}}
+@media(max-width:480px){.wrap{padding:13px}h1{font-size:22px}.metric .value{font-size:27px}.panel{padding:14px}}
 </style>
 </head>
 <body>
 <header>
-  <div class="wrap" style="padding:0 18px">
-    <h1>VIBRANT EXPO</h1>
-    <div class="subtitle">Season 1 · Management Dashboard · 1 November 2026</div>
-  </div>
+ <div class="wrap" style="padding:0 18px">
+  <h1>VIBRANT EXPO</h1>
+  <div class="subtitle">Season 1 · Management Dashboard · 1 November 2026</div>
+ </div>
 </header>
 
 <main class="wrap">
-  <section id="login" class="panel">
-    <h2>Admin Login</h2>
-    <p class="subtitle">Enter your private dashboard PIN.</p>
-    <form id="loginForm">
-      <label for="pin">Dashboard PIN</label>
-      <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" required>
-      <button id="loginButton" type="submit">Open Dashboard</button>
-      <div id="error" role="alert"></div>
-    </form>
-  </section>
+<section id="login" class="panel login">
+ <h2>Admin Login</h2>
+ <p class="subtitle">Enter your private dashboard PIN.</p>
+ <form id="loginForm">
+  <label for="pin">Dashboard PIN</label>
+  <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" required>
+  <button id="loginButton" type="submit">Open Dashboard</button>
+  <div id="error" role="alert"></div>
+ </form>
+</section>
 
-  <section id="app">
-    <div class="toolbar">
-      <button id="refreshButton" type="button">Refresh Now</button>
-      <button id="logoutButton" type="button">Lock Dashboard</button>
-      <span id="status" aria-live="polite">Waiting to load…</span>
+<section id="app">
+ <div class="toolbar">
+  <button id="refreshButton" type="button">Refresh Statistics</button>
+  <button id="logoutButton" class="secondary" type="button">Lock Dashboard</button>
+  <span id="status" aria-live="polite">Waiting…</span>
+ </div>
+
+ <div class="tabs">
+  <button class="active" data-tab="overview">Overview</button>
+  <button data-tab="marketing">Marketing QR Codes</button>
+  <button data-tab="reports">Source Reports</button>
+ </div>
+
+ <section id="overview" class="section active">
+  <div class="grid">
+   <article class="metric"><div class="label">Total Tickets</div><div class="value" id="tickets">—</div><div class="note">All registrations</div></article>
+   <article class="metric"><div class="label">Expected Visitors</div><div class="value" id="expected">—</div><div class="note">Registration estimates</div></article>
+   <article class="metric"><div class="label">Unique Tickets Scanned</div><div class="value" id="checked">—</div><div class="note">Successful first-time check-ins</div></article>
+   <article class="metric"><div class="label">Accepted Scans</div><div class="value" id="accepted">—</div><div class="note">Accepted scan attempts</div></article>
+   <article class="metric"><div class="label">Duplicate Scans</div><div class="value" id="duplicates">—</div><div class="note">Previously scanned tickets</div></article>
+   <article class="metric"><div class="label">Invalid Scans</div><div class="value" id="invalid">—</div><div class="note">Unrecognized tickets</div></article>
+  </div>
+  <div class="panel small">Statistics refresh every 30 seconds. Expected visitors are estimates, not a verified physical headcount.</div>
+ </section>
+
+ <section id="marketing" class="section">
+  <div class="panel">
+   <h2>Create Marketing Source</h2>
+   <p class="muted">Create one source per influencer, individual campaign, social page or pamphlet campaign.</p>
+   <form id="sourceForm">
+    <div class="formgrid">
+     <div><label for="sourceName">Source name</label><input id="sourceName" maxlength="100" placeholder="Example: Influencer A" required></div>
+     <div><label for="sourceType">Source type</label>
+      <select id="sourceType" required>
+       <option value="influencer">Influencer</option>
+       <option value="social">Instagram / YouTube / Social</option>
+       <option value="messaging">WhatsApp / Messaging</option>
+       <option value="offline">Pamphlets / Offline</option>
+       <option value="other">Other</option>
+      </select>
+     </div>
+     <div><label for="sourceDescription">Description (optional)</label><input id="sourceDescription" maxlength="250" placeholder="Campaign, area or influencer handle"></div>
     </div>
+    <div class="actions" style="margin-top:14px"><button id="createButton" type="submit">Create Source & QR</button></div>
+   </form>
+   <div id="message" role="status"></div>
+   <div class="qrbox">
+    <img id="qrImage" alt="QR code for selected marketing source">
+    <div id="qrDetails" class="small">Create or select a source to show its registration QR code.</div>
+   </div>
+   <div class="actions" style="margin-top:12px">
+    <button id="downloadQr" type="button" style="display:none">Download QR PNG</button>
+    <button id="copyLink" class="secondary" type="button" style="display:none">Copy Registration Link</button>
+   </div>
+   <p class="small">QR images are generated using a third-party QR image service. The QR contains your registration link, not visitor personal information.</p>
+  </div>
 
-    <div class="grid">
-      <article class="metric">
-        <div class="label">Total Tickets</div>
-        <div class="value" id="tickets">—</div>
-        <div class="note">All registrations</div>
-      </article>
-      <article class="metric">
-        <div class="label">Expected Visitors</div>
-        <div class="value" id="expected">—</div>
-        <div class="note">Based on registration estimates</div>
-      </article>
-      <article class="metric">
-        <div class="label">Unique Tickets Scanned</div>
-        <div class="value" id="checked">—</div>
-        <div class="note">Successful first-time check-ins</div>
-      </article>
-      <article class="metric">
-        <div class="label">Accepted Scans</div>
-        <div class="value" id="accepted">—</div>
-        <div class="note">Accepted scan attempts</div>
-      </article>
-      <article class="metric">
-        <div class="label">Duplicate Scans</div>
-        <div class="value" id="duplicates">—</div>
-        <div class="note">Tickets scanned more than once</div>
-      </article>
-      <article class="metric">
-        <div class="label">Invalid Scans</div>
-        <div class="value" id="invalid">—</div>
-        <div class="note">Unrecognized or invalid tickets</div>
-      </article>
-    </div>
+  <div class="panel">
+   <h2>Marketing Sources</h2>
+   <div class="actions"><button id="reloadSources" type="button">Reload Sources</button></div>
+   <div class="tablewrap">
+    <table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead><tbody id="sourceRows"><tr><td colspan="4">Log in to load sources.</td></tr></tbody></table>
+   </div>
+  </div>
+ </section>
 
-    <footer>
-      Data refreshes every 30 seconds while this page is open.
-      Expected visitors are estimates, not a verified physical headcount.
-    </footer>
-  </section>
+ <section id="reports" class="section">
+  <div class="panel">
+   <h2>Registrations by Marketing Source</h2>
+   <p class="muted">Reports count registrations attributed to each source and their expected visitor estimates.</p>
+   <div class="actions"><button id="reloadReports" type="button">Refresh Reports</button><button id="exportCsv" class="secondary" type="button">Export CSV</button></div>
+   <div class="tablewrap">
+    <table><thead><tr><th>Source</th><th>Type</th><th>Registrations</th><th>Expected visitors</th><th>Link</th></tr></thead><tbody id="reportRows"><tr><td colspan="5">Load sources to see reports.</td></tr></tbody></table>
+   </div>
+   <p class="small">Only registrations carrying a valid source token are attributed. Existing registrations without a source remain unassigned. Check-in counts by source are not included in this first version.</p>
+  </div>
+ </section>
+
+ <footer>Vibrant Expo · Private admin dashboard. Never share your PIN or database secrets.</footer>
+</section>
 </main>
 
 <script>
-const API_URL = "https://jzfjizjldcazysnqlpjr.supabase.co/functions/v1/expo-dashboard";
+const PROJECT_URL = "https://jzfjizjldcazysnqlpjr.supabase.co";
+const DASHBOARD_API = PROJECT_URL + "/functions/v1/expo-dashboard";
+const MARKETING_API = PROJECT_URL + "/functions/v1/expo-marketing";
+const REGISTRATION_PAGE = location.origin + "/index.html";
 
-const login = document.getElementById("login");
-const app = document.getElementById("app");
-const form = document.getElementById("loginForm");
-const pinInput = document.getElementById("pin");
-const errorBox = document.getElementById("error");
-const loginButton = document.getElementById("loginButton");
-const statusBox = document.getElementById("status");
-
+const $ = id => document.getElementById(id);
 let dashboardPin = "";
 let refreshTimer = null;
 let requestRunning = false;
+let sources = [];
+let selectedSource = null;
 
-function showStatus(message) {
-  statusBox.textContent = message;
+function status(message, good = false) {
+  $("message").textContent = message;
+  $("message").className = good ? "ok" : "bad";
+}
+function showStatus(message) { $("status").textContent = message; }
+function safeText(value) { return String(value ?? ""); }
+
+async function api(url, payload) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...payload, pin: dashboardPin })
+  });
+  let result;
+  try { result = await response.json(); }
+  catch { throw new Error("Server returned an unreadable response."); }
+  if (response.status === 401) {
+    lockDashboard();
+    throw new Error("PIN rejected. Please log in again.");
+  }
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || "Request failed.");
+  }
+  return result;
 }
 
 async function loadDashboard() {
   if (!dashboardPin || requestRunning) return;
   requestRunning = true;
   showStatus("Refreshing…");
-
   try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin: dashboardPin })
-    });
-
-    const result = await response.json();
-
-    if (response.status === 401) {
-      lockDashboard();
-      errorBox.textContent = "PIN rejected. Please log in again.";
-      return;
-    }
-
-    if (!response.ok || !result.success || !result.summary) {
-      throw new Error(result.error || "Could not load dashboard");
-    }
-
+    const result = await api(DASHBOARD_API, {});
     const s = result.summary;
     const values = {
       tickets: s.total_tickets,
@@ -151,17 +211,14 @@ async function loadDashboard() {
       duplicates: s.duplicate_scans,
       invalid: s.invalid_scans
     };
-
     for (const [id, value] of Object.entries(values)) {
       const number = Number(value);
-      if (!Number.isFinite(number)) throw new Error("Unexpected dashboard data");
-      document.getElementById(id).textContent = number.toLocaleString("en-IN");
+      if (!Number.isFinite(number)) throw new Error("Unexpected dashboard data.");
+      $(id).textContent = number.toLocaleString("en-IN");
     }
-
     showStatus("Updated " + new Date().toLocaleTimeString());
   } catch (error) {
-    console.error(error);
-    showStatus("Refresh failed — check connection and try again.");
+    showStatus(error.message || "Refresh failed.");
   } finally {
     requestRunning = false;
   }
@@ -172,57 +229,256 @@ function lockDashboard() {
   if (refreshTimer) clearInterval(refreshTimer);
   refreshTimer = null;
   requestRunning = false;
-  app.style.display = "none";
-  login.style.display = "block";
-  pinInput.value = "";
-  pinInput.focus();
+  $("app").style.display = "none";
+  $("login").style.display = "block";
+  $("pin").value = "";
+  $("pin").focus();
   showStatus("Dashboard locked");
 }
 
-form.addEventListener("submit", async (event) => {
+$("loginForm").addEventListener("submit", async event => {
   event.preventDefault();
-  const enteredPin = pinInput.value.trim();
+  const enteredPin = $("pin").value.trim();
   if (!enteredPin) return;
-
-  errorBox.textContent = "";
-  loginButton.disabled = true;
-  loginButton.textContent = "Checking…";
-
+  $("error").textContent = "";
+  $("loginButton").disabled = true;
+  $("loginButton").textContent = "Checking…";
   dashboardPin = enteredPin;
-
   try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin: dashboardPin })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      dashboardPin = "";
-      errorBox.textContent = response.status === 401
-        ? "Incorrect PIN. Please try again."
-        : (result.error || "Login failed. Please retry.");
-      return;
-    }
-
-    login.style.display = "none";
-    app.style.display = "block";
+    await api(DASHBOARD_API, {});
+    $("login").style.display = "none";
+    $("app").style.display = "block";
     await loadDashboard();
+    await loadSources();
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(loadDashboard, 30000);
   } catch (error) {
     dashboardPin = "";
-    errorBox.textContent = "Unable to connect. Check your internet and retry.";
+    $("error").textContent = error.message || "Unable to connect. Please retry.";
   } finally {
-    loginButton.disabled = false;
-    loginButton.textContent = "Open Dashboard";
+    $("loginButton").disabled = false;
+    $("loginButton").textContent = "Open Dashboard";
   }
 });
 
-document.getElementById("refreshButton").addEventListener("click", loadDashboard);
-document.getElementById("logoutButton").addEventListener("click", lockDashboard);
+$("logoutButton").addEventListener("click", lockDashboard);
+$("refreshButton").addEventListener("click", loadDashboard);
+
+document.querySelectorAll("[data-tab]").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("[data-tab]").forEach(b => b.classList.toggle("active", b === button));
+    document.querySelectorAll(".section").forEach(s => s.classList.toggle("active", s.id === button.dataset.tab));
+    if (button.dataset.tab === "marketing") loadSources();
+    if (button.dataset.tab === "reports") loadReports();
+  });
+});
+
+async function loadSources() {
+  if (!dashboardPin) return;
+  $("sourceRows").innerHTML = '<tr><td colspan="4">Loading…</td></tr>';
+  try {
+    const result = await api(MARKETING_API, { action: "list" });
+    sources = Array.isArray(result.sources) ? result.sources : [];
+    renderSources();
+    renderReports();
+  } catch (error) {
+    $("sourceRows").innerHTML = '<tr><td colspan="4"></td></tr>';
+    $("sourceRows").firstElementChild.firstElementChild.textContent = error.message;
+  }
+}
+
+function renderSources() {
+  const tbody = $("sourceRows");
+  tbody.replaceChildren();
+  if (!sources.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 4; td.textContent = "No sources yet.";
+    tr.appendChild(td); tbody.appendChild(tr); return;
+  }
+  sources.forEach(source => {
+    const tr = document.createElement("tr");
+    const name = document.createElement("td");
+    name.textContent = source.source_name;
+    const type = document.createElement("td");
+    type.textContent = source.source_type;
+    const active = document.createElement("td");
+    active.textContent = source.is_active ? "Active" : "Inactive";
+    const actions = document.createElement("td");
+    const view = document.createElement("button");
+    view.textContent = "Show QR";
+    view.addEventListener("click", () => selectSource(source));
+    const toggle = document.createElement("button");
+    toggle.className = "secondary";
+    toggle.style.marginLeft = "5px";
+    toggle.textContent = source.is_active ? "Deactivate" : "Activate";
+    toggle.addEventListener("click", () => toggleSource(source));
+    actions.append(view, toggle);
+    tr.append(name, type, active, actions);
+    tbody.appendChild(tr);
+  });
+}
+
+function registrationLink(source) {
+  const url = new URL(REGISTRATION_PAGE);
+  url.searchParams.set("source", source.source_token);
+  return url.href;
+}
+
+function selectSource(source) {
+  selectedSource = source;
+  const link = registrationLink(source);
+  const qr = "https://api.qrserver.com/v1/create-qr-code/?size=500x500&format=png&data=" + encodeURIComponent(link);
+  $("qrImage").src = qr;
+  $("qrImage").style.display = "block";
+  $("qrDetails").replaceChildren();
+  const title = document.createElement("strong");
+  title.textContent = source.source_name;
+  const br = document.createElement("br");
+  const linkText = document.createElement("a");
+  linkText.href = link;
+  linkText.target = "_blank";
+  linkText.rel = "noopener";
+  linkText.textContent = link;
+  const note = document.createElement("div");
+  note.className = "small";
+  note.textContent = "Token: " + source.source_token;
+  $("qrDetails").append(title, br, linkText, note);
+  $("downloadQr").style.display = "inline-block";
+  $("copyLink").style.display = "inline-block";
+  status("QR ready for " + source.source_name, true);
+}
+
+$("sourceForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const button = $("createButton");
+  button.disabled = true;
+  button.textContent = "Creating…";
+  try {
+    const result = await api(MARKETING_API, {
+      action: "create",
+      source_name: $("sourceName").value.trim(),
+      source_type: $("sourceType").value,
+      description: $("sourceDescription").value.trim()
+    });
+    $("sourceForm").reset();
+    await loadSources();
+    selectSource(result.source);
+    status("Source created successfully.", true);
+  } catch (error) {
+    status(error.message || "Could not create source.");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Create Source & QR";
+  }
+});
+
+async function toggleSource(source) {
+  try {
+    await api(MARKETING_API, {
+      action: "set_active",
+      id: source.id,
+      is_active: !source.is_active
+    });
+    await loadSources();
+    status("Source status updated.", true);
+  } catch (error) {
+    status(error.message || "Could not update source.");
+  }
+}
+
+$("reloadSources").addEventListener("click", loadSources);
+$("reloadReports").addEventListener("click", loadReports);
+
+$("downloadQr").addEventListener("click", async () => {
+  if (!selectedSource) return;
+  try {
+    const response = await fetch($("qrImage").src);
+    if (!response.ok) throw new Error("QR image could not be downloaded.");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = selectedSource.source_token + ".png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch {
+    window.open($("qrImage").src, "_blank", "noopener");
+    status("QR opened in a new tab. Save the image from there.");
+  }
+});
+
+$("copyLink").addEventListener("click", async () => {
+  if (!selectedSource) return;
+  const link = registrationLink(selectedSource);
+  try {
+    await navigator.clipboard.writeText(link);
+    status("Registration link copied.", true);
+  } catch {
+    window.prompt("Copy this registration link:", link);
+  }
+});
+
+async function loadReports() {
+  if (!dashboardPin) return;
+  await loadSources();
+  renderReports();
+}
+
+function renderReports() {
+  const tbody = $("reportRows");
+  tbody.replaceChildren();
+  if (!sources.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 5; td.textContent = "No marketing sources found.";
+    tr.appendChild(td); tbody.appendChild(tr); return;
+  }
+  sources.forEach(source => {
+    const tr = document.createElement("tr");
+    const values = [
+      source.source_name,
+      source.source_type,
+      "Pending",
+      "Pending"
+    ];
+    values.forEach(value => {
+      const td = document.createElement("td");
+      td.textContent = value;
+      tr.appendChild(td);
+    });
+    const linkCell = document.createElement("td");
+    const link = document.createElement("a");
+    link.href = registrationLink(source);
+    link.textContent = "Open";
+    link.target = "_blank";
+    link.rel = "noopener";
+    linkCell.appendChild(link);
+    tr.appendChild(linkCell);
+    tbody.appendChild(tr);
+  });
+  $("reportRows").dataset.note = "Counts require a reporting endpoint.";
+}
+
+$("exportCsv").addEventListener("click", () => {
+  if (!sources.length) {
+    status("No marketing sources to export.");
+    return;
+  }
+  const rows = [["Source","Token","Type","Active","Registration link","Registrations","Expected visitors"]];
+  sources.forEach(s => rows.push([
+    s.source_name,s.source_token,s.source_type,s.is_active ? "Yes" : "No",
+    registrationLink(s),"Not loaded","Not loaded"
+  ]));
+  const csv = rows.map(row => row.map(value => '"' + String(value ?? "").replaceAll('"','""') + '"').join(",")).join("\r\n");
+  const blob = new Blob(["\uFEFF" + csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "vibrant-expo-marketing-sources.csv";
+  a.click(); URL.revokeObjectURL(url);
+});
 </script>
 </body>
 </html>
