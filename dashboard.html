@@ -160,9 +160,9 @@ footer{color:var(--muted);font-size:12px;margin-top:26px;line-height:1.6;padding
    <p class="muted">Reports count registrations attributed to each source and their expected visitor estimates.</p>
    <div class="actions"><button id="reloadReports" type="button">Refresh Reports</button><button id="exportCsv" class="secondary" type="button">Export CSV</button></div>
    <div class="tablewrap">
-    <table><thead><tr><th>Source</th><th>Type</th><th>Registrations</th><th>Expected visitors</th><th>Link</th></tr></thead><tbody id="reportRows"><tr><td colspan="5">Load sources to see reports.</td></tr></tbody></table>
+    <table><thead><tr><th>Source</th><th>Type</th><th>Registrations</th><th>Expected visitors</th><th>Actual visitors attended</th><th>Link</th></tr></thead><tbody id="reportRows"><tr><td colspan="5">Load sources to see reports.</td></tr></tbody></table>
    </div>
-   <p class="small">Only registrations carrying a valid source token are attributed. Existing registrations without a source remain unassigned. Check-in counts by source are not included in this first version.</p>
+   <p class="small">Actual visitors attended counts the people recorded at accepted check-ins, attributed to the original registration source. Registrations without a valid source token remain unassigned. This figure depends on the marketing reports API returning actual_visitors_attended.</p>
   </div>
  </section>
 
@@ -442,7 +442,7 @@ async function loadReports() {
   tbody.replaceChildren();
   const loadingRow = document.createElement("tr");
   const loadingCell = document.createElement("td");
-  loadingCell.colSpan = 5;
+  loadingCell.colSpan = 6;
   loadingCell.textContent = "Loading source reports…";
   loadingRow.appendChild(loadingCell);
   tbody.appendChild(loadingRow);
@@ -464,7 +464,7 @@ async function loadReports() {
     tbody.replaceChildren();
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 5;
+    td.colSpan = 6;
     td.textContent = error.message || "Could not load source reports.";
     tr.appendChild(td);
     tbody.appendChild(tr);
@@ -478,7 +478,7 @@ function renderReports() {
   if (!sources.length) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 5; td.textContent = "No marketing sources found.";
+    td.colSpan = 6; td.textContent = "No marketing sources found.";
     tr.appendChild(td); tbody.appendChild(tr); return;
   }
   sources.forEach(source => {
@@ -488,7 +488,8 @@ function renderReports() {
       source.source_name,
       source.source_type,
       Number(report.registrations ?? 0).toLocaleString("en-IN"),
-      Number(report.expected_visitors ?? 0).toLocaleString("en-IN")
+      Number(report.expected_visitors ?? 0).toLocaleString("en-IN"),
+      Number(report.actual_visitors_attended ?? 0).toLocaleString("en-IN")
     ];
     values.forEach(value => {
       const td = document.createElement("td");
@@ -512,14 +513,15 @@ $("exportCsv").addEventListener("click", () => {
     status("No marketing sources to export.");
     return;
   }
-  const rows = [["Source","Token","Type","Active","Registration link","Registrations","Expected visitors"]];
+  const rows = [["Source","Token","Type","Active","Registration link","Registrations","Expected visitors","Actual visitors attended"]];
   sources.forEach(s => {
     const report = reportCounts.get(s.id) || {};
     rows.push([
       s.source_name, s.source_token, s.source_type, s.is_active ? "Yes" : "No",
       registrationLink(s),
       Number(report.registrations ?? 0),
-      Number(report.expected_visitors ?? 0)
+      Number(report.expected_visitors ?? 0),
+      Number(report.actual_visitors_attended ?? 0)
     ]);
   });
   const csv = rows.map(row => row.map(value => '"' + String(value ?? "").replaceAll('"','""') + '"').join(",")).join("\\r\\n");
