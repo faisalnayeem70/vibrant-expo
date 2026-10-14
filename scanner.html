@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +29,7 @@
       border: 0; background: #7816b4; color: white;
       font-weight: bold; cursor: pointer;
     }
-    button:disabled { opacity: .55; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
     #reader { margin-top: 18px; width: 100%; }
     #status {
       margin-top: 18px; padding: 20px 12px;
@@ -43,6 +42,34 @@
     .duplicate { background: #fff0b8; color: #795200; }
     .invalid { background: #ffd5d5; color: #a00000; }
     .info { font-size: 13px; }
+    .count-grid {
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px; margin-top: 10px;
+    }
+    .count-btn {
+      margin: 0; padding: 13px 0; background: #f0e3fa;
+      color: #65109b; border: 2px solid transparent;
+    }
+    .count-btn.selected {
+      background: #7816b4; color: #fff; border-color: #4e087b;
+      box-shadow: 0 0 0 2px #e8d2f8;
+    }
+    .count-summary {
+      margin-top: 10px; text-align: center; padding: 12px;
+      border-radius: 10px; background: #f7f0fc; color: #5f1689;
+      font-weight: bold;
+    }
+    .stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-top: 16px;
+    }
+    .stat {
+      background: #f8f4fb; border: 1px solid #eadcf5;
+      border-radius: 12px; padding: 13px 8px; text-align: center;
+    }
+    .stat strong { display: block; font-size: 24px; color: #7816b4; }
+    .stat span { font-size: 12px; color: #555; }
+    .small { font-size: 12px; color: #666; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -55,15 +82,43 @@
          autocomplete="current-password" placeholder="Enter scanner PIN">
 
   <label for="staff">Scanner name</label>
-  <input id="staff" maxlength="40" value="Scanner 01"
-         autocomplete="off">
+  <input id="staff" maxlength="40" value="Scanner 01" autocomplete="off">
+
+  <label>How many people are entering on this ticket?</label>
+  <div class="count-grid" id="countGrid" aria-label="People entering">
+    <button type="button" class="count-btn" data-count="1">1</button>
+    <button type="button" class="count-btn" data-count="2">2</button>
+    <button type="button" class="count-btn" data-count="3">3</button>
+    <button type="button" class="count-btn" data-count="4">4</button>
+    <button type="button" class="count-btn" data-count="5">5</button>
+    <button type="button" class="count-btn" data-count="6">6</button>
+    <button type="button" class="count-btn" data-count="7">7</button>
+    <button type="button" class="count-btn selected" data-count="8" aria-pressed="true">8</button>
+    <button type="button" class="count-btn" data-count="9">9</button>
+  </div>
+  <label for="customCount">Or enter a custom number (10 or more)</label>
+  <input id="customCount" type="number" inputmode="numeric" min="10"
+         step="1" placeholder="Custom headcount (optional)">
+  <div class="count-summary" id="countSummary">Selected headcount: 8 people</div>
 
   <button id="start">START CAMERA SCANNER</button>
   <button id="stop" disabled>STOP SCANNER</button>
 
+  <div class="stats" aria-live="polite">
+    <div class="stat">
+      <strong id="ticketTotal">—</strong>
+      <span>Tickets accepted this session</span>
+    </div>
+    <div class="stat">
+      <strong id="peopleTotal">—</strong>
+      <span>People admitted (server total)</span>
+    </div>
+  </div>
+  <p class="small">Live totals appear when the scanner server returns authoritative totals. A browser-only count is not treated as the official total.</p>
+
   <div id="reader"></div>
   <div id="status" class="idle" role="status" aria-live="polite">
-    Enter PIN and start the scanner
+    Enter PIN, confirm headcount, and start the scanner
   </div>
   <p class="info">Green = accepted · Yellow = duplicate · Red = invalid</p>
 </main>
@@ -79,18 +134,65 @@
   let busy = false;
   let lastToken = "";
   let lastTime = 0;
+  let selectedCount = 8;
+  let acceptedThisSession = 0;
 
   function show(message, type) {
     $("status").textContent = message;
     $("status").className = type;
   }
 
+  function currentCount() {
+    const customRaw = $("customCount").value.trim();
+    if (customRaw !== "") {
+      const custom = Number(customRaw);
+      if (!Number.isInteger(custom) || custom < 10) return null;
+      return custom;
+    }
+    return selectedCount;
+  }
+
+  function updateCountUI() {
+    const count = currentCount();
+    document.querySelectorAll(".count-btn").forEach(button => {
+      const active = $("customCount").value.trim() === "" &&
+        Number(button.dataset.count) === selectedCount;
+      button.classList.toggle("selected", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    $("countSummary").textContent = count === null
+      ? "Enter a whole number of 10 or more"
+      : `Selected headcount: ${count} ${count === 1 ? "person" : "people"}`;
+  }
+
+  document.querySelectorAll(".count-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      selectedCount = Number(button.dataset.count);
+      $("customCount").value = "";
+      updateCountUI();
+    });
+  });
+  $("customCount").addEventListener("input", updateCountUI);
+  updateCountUI();
+
+  function updateServerTotals(result) {
+    // These values must be calculated by the server/database, not the browser.
+    const tickets = result.total_accepted_tickets ?? result.accepted_tickets_total;
+    const people = result.total_people_entered ?? result.people_entered_total;
+    if (Number.isFinite(Number(tickets))) $("ticketTotal").textContent = Number(tickets);
+    if (Number.isFinite(Number(people))) $("peopleTotal").textContent = Number(people);
+  }
+
   async function handleScan(decodedText) {
     const token = decodedText.trim();
     const now = Date.now();
-
-    // Prevent rapid repeat requests while the same QR remains in view.
     if (busy || (token === lastToken && now - lastTime < 2500)) return;
+
+    const peopleCount = currentCount();
+    if (!Number.isInteger(peopleCount) || peopleCount < 1) {
+      show("SELECT A VALID HEADCOUNT BEFORE SCANNING", "invalid");
+      return;
+    }
 
     lastToken = token;
     lastTime = now;
@@ -103,7 +205,8 @@
         body: JSON.stringify({
           pin: $("pin").value,
           ticket_token: token,
-          scanner_label: $("staff").value.trim() || "Scanner"
+          scanner_label: $("staff").value.trim() || "Scanner",
+          people_count: peopleCount
         })
       });
 
@@ -112,15 +215,19 @@
       if (response.status === 401) {
         show("PIN INCORRECT — CHECK STAFF PIN", "invalid");
       } else if (!response.ok) {
-        show("SERVER ERROR — TRY AGAIN", "invalid");
+        show(result.error || "SERVER ERROR — TRY AGAIN", "invalid");
       } else if (result.status === "accepted") {
-        show("✓ ENTRY ACCEPTED", "accepted");
+        acceptedThisSession += 1;
+        $("ticketTotal").textContent = acceptedThisSession;
+        updateServerTotals(result);
+        show(`✓ ENTRY ACCEPTED — ${peopleCount} ${peopleCount === 1 ? "PERSON" : "PEOPLE"} ADMITTED`, "accepted");
       } else if (result.status === "duplicate") {
-        show("⚠ ALREADY SCANNED — ALLOW ENTRY", "duplicate");
+        updateServerTotals(result);
+        show("⚠ ALREADY SCANNED — DO NOT ADD TO THE COUNT", "duplicate");
       } else if (result.status === "invalid") {
         show("✕ INVALID TICKET", "invalid");
       } else {
-        show("UNEXPECTED RESPONSE — CHECK", "invalid");
+        show("UNEXPECTED RESPONSE — CHECK SERVER", "invalid");
       }
     } catch (error) {
       show("CONNECTION ERROR — CHECK INTERNET", "invalid");
@@ -136,7 +243,12 @@
       $("pin").focus();
       return;
     }
-
+    const count = currentCount();
+    if (!Number.isInteger(count) || count < 1) {
+      show("ENTER A VALID HEADCOUNT FIRST", "invalid");
+      $("customCount").focus();
+      return;
+    }
     if (typeof Html5Qrcode === "undefined") {
       show("SCANNER LIBRARY FAILED TO LOAD", "invalid");
       return;
@@ -153,7 +265,7 @@
       running = true;
       $("start").disabled = true;
       $("stop").disabled = false;
-      show("CAMERA READY — SCAN A TICKET", "idle");
+      show("CAMERA READY — CONFIRM HEADCOUNT FOR EACH TICKET", "idle");
     } catch (error) {
       scanner = null;
       show("CAMERA FAILED — ALLOW CAMERA PERMISSION", "invalid");
