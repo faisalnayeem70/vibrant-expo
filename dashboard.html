@@ -187,8 +187,9 @@ async function api(url, payload) {
   try { result = await response.json(); }
   catch { throw new Error("Server returned an unreadable response."); }
   if (response.status === 401) {
-    lockDashboard();
-    throw new Error("PIN rejected. Please log in again.");
+    // Do not log out automatically on a failed background or marketing request.
+    // Show the error so the admin can diagnose which endpoint rejected the PIN.
+    throw new Error("HTTP 401: this function rejected the dashboard PIN. Check the function's EXPO_DASHBOARD_PIN secret.");
   }
   if (!response.ok || !result.success) {
     throw new Error(result.error || "Request failed.");
