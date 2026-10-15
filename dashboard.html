@@ -255,6 +255,7 @@ async function loadDashboard() {
 
 function lockDashboard() {
   dashboardPin = "";
+  sessionStorage.removeItem("expo_dashboard_pin");
   if (refreshTimer) clearInterval(refreshTimer);
   refreshTimer = null;
   requestRunning = false;
@@ -263,11 +264,12 @@ function lockDashboard() {
   $("pin").value = "";
   $("pin").focus();
   showStatus("Dashboard locked");
+  location.href = "access.html";
 }
 
 $("loginForm").addEventListener("submit", async event => {
   event.preventDefault();
-  const enteredPin = $("pin").value.trim();
+  const enteredPin = (sessionStorage.getItem("expo_dashboard_pin") || $("pin").value).trim();
   if (!enteredPin) return;
   $("error").textContent = "";
   $("loginButton").disabled = true;
@@ -548,6 +550,13 @@ $("exportCsv").addEventListener("click", () => {
   a.remove();
   URL.revokeObjectURL(url);
 });
+
+// Complete login started on the shared access page, if present in this tab.
+const savedDashboardPin = sessionStorage.getItem("expo_dashboard_pin");
+if (savedDashboardPin) {
+  $("pin").value = savedDashboardPin;
+  $("loginForm").requestSubmit();
+}
 </script>
 </body>
 </html>
