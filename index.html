@@ -193,14 +193,11 @@
 
     .alice-brand {
       font-family: "Alice", Georgia, serif;
-      font-size: clamp(26px, 6vw, 32px);
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 400;
       letter-spacing: 0;
       text-transform: none;
-      color: #7b2f66;
-      text-shadow: none;
-      display: inline-block;
-      line-height: 1.2;
+      color: #f02078;
     }
 
     .event-details {
@@ -218,21 +215,6 @@
       font-weight: 800;
       letter-spacing: 2px;
       margin-bottom: 6px;
-    }
-
-    .visitor-registration {
-      margin: 0 0 10px;
-      color: #666078;
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.2px;
-    }
-
-    .form-subtitle {
-      text-align: center;
-      margin: 0 0 18px;
-      font-size: 15px;
-      color: #666078;
     }
 
     .event-date {
@@ -282,6 +264,15 @@
       display: none !important;
     }
 
+
+    .download-ticket-btn { display:block; width:100%; margin:18px auto 8px; padding:14px 16px; border:0; border-radius:10px; background:#6b35b5; color:#fff; font-weight:700; letter-spacing:.3px; cursor:pointer; }
+    .download-ticket-btn:hover { background:#542894; }
+    .ticket-help { font-size:13px; color:#666; text-align:center; }
+    .ticket-actions { display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
+    .ticket-actions button { margin:0; }
+    .qr-download-btn { background:#16794b; }
+    .whatsapp-share-btn { background:#128c4a; }
+    .ticket-preview-note { color:#5b397d; font-size:13px; font-weight:600; margin:10px 0; }
   </style>
 </head>
 
@@ -297,6 +288,7 @@
           <span class="presented-by">Presents</span>
         </div>
         <h1>VIBRANT EXPO</h1>
+        <p>Visitor Registration</p>
         <div class="event-details">
           <div class="season-label">SEASON 01</div>
           <div class="event-date">Sunday, 1 November 2026</div>
@@ -304,8 +296,6 @@
           <div class="entry-note">FREE ENTRY · REGISTER FOR YOUR TICKET</div>
         </div>
       </div>
-
-      <p class="visitor-registration form-subtitle">Visitor Registration</p>
 
       <form id="registrationForm">
 
@@ -442,6 +432,13 @@
         <p id="expectedPeople"></p>
         <p>Scan this QR code at the entrance</p>
 <div id="ticketQR" style="margin: 20px auto;"></div>
+        <p class="ticket-preview-note">Your ticket preview is ready. Save it now and keep the QR code for entry.</p>
+        <div class="ticket-actions">
+          <button type="button" id="downloadTicketBtn" class="download-ticket-btn" onclick="downloadVisitorTicket()">DOWNLOAD TICKET / SAVE AS PDF</button>
+          <button type="button" id="downloadQrBtn" class="download-ticket-btn qr-download-btn" onclick="downloadTicketQr()">DOWNLOAD QR CODE</button>
+          <button type="button" id="shareWhatsAppBtn" class="download-ticket-btn whatsapp-share-btn" onclick="shareTicketOnWhatsApp()">SHARE ON WHATSAPP</button>
+        </div>
+        <p class="ticket-help">Keep your ticket private. Show its QR code at the entrance. WhatsApp sharing sends event details and your ticket number, not the scannable QR token.</p>
 
       </div>
 
@@ -480,6 +477,71 @@
 
     const SUPABASE_URL = "https://jzfjizjldcazysnqlpjr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_V5bTKaoMgbrBx6ic8EuX6g_euN9COX8";
+
+  let latestTicket = null;
+
+  async function downloadTicketQr() {
+    if (!latestTicket || !latestTicket.ticket_number || !latestTicket.qrUrl) {
+      alert("Your ticket QR code is not ready yet. Please register first.");
+      return;
+    }
+    const filename = `Vibrant-Expo-${String(latestTicket.ticket_number).replace(/[^a-zA-Z0-9_-]/g, "")}-QR.png`;
+    try {
+      const response = await fetch(latestTicket.qrUrl, { mode: "cors" });
+      if (!response.ok) throw new Error("QR download failed");
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+    } catch (error) {
+      // Fallback: open the actual QR image so the visitor can save it manually.
+      const opened = window.open(latestTicket.qrUrl, "_blank", "noopener");
+      if (!opened) alert("Your browser blocked the QR image. Allow pop-ups or long-press the QR code to save it.");
+    }
+  }
+
+  function shareTicketOnWhatsApp() {
+    if (!latestTicket || !latestTicket.ticket_number) {
+      alert("Your ticket is not ready yet. Please register first.");
+      return;
+    }
+    const message = [
+      "My Vibrant Expo ticket is confirmed!",
+      `Ticket Number: ${latestTicket.ticket_number}`,
+      "Vv collections Presents VIBRANT EXPO — Season 01",
+      "Date: Sunday, 1 November 2026",
+      "Venue: Kings Classic Garden, Gudimalkapur, Hyderabad",
+      "Entry: FREE",
+      "Please register for your own ticket here: https://vibrant-expo.vercel.app/",
+      "Keep your ticket QR code ready for entry."
+    ].join("\n");
+    window.open("https://wa.me/?text=" + encodeURIComponent(message), "_blank", "noopener");
+  }
+
+  function downloadVisitorTicket() {
+    if (!latestTicket || !latestTicket.ticket_number || !latestTicket.qrUrl) {
+      alert("Your ticket is not ready yet. Please register first.");
+      return;
+    }
+    const ticketWindow = window.open("", "_blank");
+    if (!ticketWindow) {
+      alert("Please allow pop-ups to download your ticket.");
+      return;
+    }
+    const ticketNumber = String(latestTicket.ticket_number).replace(/[<>\"'&]/g, "");
+    const expected = String(latestTicket.expected_people ?? "").replace(/[<>\"'&]/g, "");
+    const qrUrl = latestTicket.qrUrl;
+    ticketWindow.document.open();
+    ticketWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vibrant Expo Ticket ${ticketNumber}</title><style>
+      *{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f4f0fa;color:#21172d;padding:24px}.ticket{max-width:440px;margin:0 auto;background:#fff;border:2px solid #6b35b5;border-radius:18px;overflow:hidden;text-align:center}.top{background:linear-gradient(135deg,#6b35b5,#d64d9a);color:white;padding:24px 16px}.brand{font-size:13px;letter-spacing:2px;text-transform:uppercase}.title{font-size:30px;font-weight:900;margin:8px 0}.season{font-size:12px;letter-spacing:2px}.body{padding:22px 18px}.label{font-size:12px;color:#777;letter-spacing:1px}.number{font-size:28px;font-weight:800;color:#6b35b5;margin:8px 0 14px;overflow-wrap:anywhere}.event{font-weight:700;font-size:17px;margin:12px 0 6px}.details{font-size:14px;line-height:1.6;color:#51475b}.qr{width:220px;height:220px;object-fit:contain;display:block;margin:18px auto}.note{background:#f7f1ff;border-radius:10px;padding:12px;font-size:13px;line-height:1.5}.actions{max-width:440px;margin:16px auto;text-align:center}.actions button{border:0;border-radius:9px;padding:12px 18px;background:#6b35b5;color:#fff;font-weight:700;cursor:pointer}@media print{body{background:white;padding:0}.actions{display:none}@page{size:A5 portrait;margin:10mm}}
+      </style></head><body><main class="ticket"><header class="top"><div class="brand">Vv collections Presents</div><div class="title">VIBRANT EXPO</div><div class="season">SEASON 01 · VISITOR TICKET</div></header><section class="body"><div class="label">TICKET NUMBER</div><div class="number">${ticketNumber}</div><div class="event">Sunday, 1 November 2026</div><div class="details">Kings Classic Garden<br>Gudimalkapur, Hyderabad<br>FREE ENTRY</div><img class="qr" src="${qrUrl}" alt="Ticket QR code"><div class="note">${expected ? expected + " expected visitors. " : ""}Show this QR code at the entrance. Each ticket is subject to the event's check-in rules.</div></section></main><div class="actions"><button onclick="window.print()">Print / Save as PDF</button><p>In the print dialog, choose “Save as PDF” to keep a PDF copy.</p></div><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),700));<\/script></body></html>`);
+    ticketWindow.document.close();
+  }
 
 document
   .getElementById("registrationForm")
@@ -566,6 +628,12 @@ qrImage.height = 200;
 qrImage.src =
   "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
   encodeURIComponent(registration.ticket_token);
+
+latestTicket = {
+  ticket_number: registration.ticket_number,
+  expected_people: registration.expected_people,
+  qrUrl: qrImage.src
+};
 
 qrBox.appendChild(qrImage);
       document.getElementById("ticketNumber").textContent =
