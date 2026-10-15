@@ -138,7 +138,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
     return {response, data};
   }
   async function login() {
-    const pin = $("loginPin").value.trim();
+    const pin = (sessionStorage.getItem("expo_scanner_pin") || $("loginPin").value).trim();
     if (!pin) {
       $("loginStatus").textContent = "ENTER STAFF PIN FIRST";
       $("loginStatus").className = "status invalid";
@@ -150,6 +150,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
       const {response, data} = await post({action:"login", pin});
       if (!response.ok || data.status !== "authenticated") throw new Error(response.status === 401 ? "Incorrect PIN. Try again." : (data.error || "Login failed."));
       scannerPin = pin;
+      sessionStorage.removeItem("expo_scanner_pin");
       $("loginPin").value = "";
       $("loginScreen").classList.add("hidden");
       $("scannerScreen").classList.remove("hidden");
@@ -252,6 +253,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
   }
   async function logout(message = "Logged out. Enter staff PIN to continue.") {
     scannerPin = ""; pendingToken = ""; busy = false;
+    sessionStorage.removeItem("expo_scanner_pin");
     if (scanner && running) {
       try { await scanner.stop(); await scanner.clear(); } catch (_) {}
     }
@@ -261,6 +263,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
     $("loginScreen").classList.remove("hidden");
     $("loginStatus").textContent = message;
     $("loginStatus").className = "status idle";
+    if (message === "Logged out. Enter staff PIN to continue.") location.href = "access.html";
   }
 
   document.querySelectorAll(".count-btn").forEach(b => b.addEventListener("click", () => {
@@ -275,6 +278,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
   $("cancelCount").addEventListener("click", cancelEntry);
   $("logoutButton").addEventListener("click", () => logout());
   updateCountUI();
+  const savedScannerPin = sessionStorage.getItem("expo_scanner_pin");
+  if (savedScannerPin) { $("loginPin").value = savedScannerPin; login(); }
 })();
 </script>
 </body>
