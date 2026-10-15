@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vibrant Expo | Secure Access</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:18px;font-family:Arial,sans-serif;background:linear-gradient(135deg,#fff0d8,#f6dffb,#dff6f8);color:#302126}
+main{width:100%;max-width:440px;background:#fff;padding:26px;border-radius:22px;box-shadow:0 16px 45px #39133a20}
+h1{text-align:center;color:#9f2030;margin:0;font-size:28px}p{text-align:center;color:#76646a;margin:8px 0 22px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px}.role{border:2px solid #ead7dc;background:#fff8f7;color:#7f2434;padding:17px 10px;border-radius:14px;cursor:pointer;font-weight:bold;min-height:94px}.role.active{border-color:#a82035;background:#fff0f1;box-shadow:0 0 0 2px #a8203514}.role span{display:block;font-size:26px;margin-bottom:8px}
+label{display:block;margin:20px 0 7px;font-weight:bold;font-size:14px}input{width:100%;padding:14px;border:1px solid #d9c8cc;border-radius:10px;font-size:17px}button.submit{width:100%;padding:14px;margin-top:14px;border:0;border-radius:10px;background:#a82035;color:white;font-size:16px;font-weight:bold;cursor:pointer}button:disabled{opacity:.6}#message{margin-top:13px;padding:11px;border-radius:9px;font-size:14px;text-align:center} .hint{font-size:12px;line-height:1.5;margin-top:16px}
+</style></head>
+<body><main>
+<h1>VIBRANT EXPO</h1><p>Season 1 · Secure Access</p>
+<div class="options">
+<button class="role active" data-role="panel" type="button"><span>▦</span>Admin Panel</button>
+<button class="role" data-role="scanner" type="button"><span>▣</span>Scanning Team</button>
+</div>
+<form id="accessForm">
+<label id="pinLabel" for="pin">Admin Dashboard PIN</label>
+<input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter your PIN" required>
+<button id="submit" class="submit" type="submit">LOGIN TO PANEL</button>
+<div id="message" aria-live="polite">Choose your access type and enter its PIN.</div>
+</form>
+<div class="hint">Access is verified by the existing secure Supabase functions. Admin and scanning access remain separate.</div>
+</main>
+<script>
+(() => {
+ const $=id=>document.getElementById(id); let role="panel";
+ const roles={panel:{label:"Admin Dashboard PIN",button:"LOGIN TO PANEL",url:"https://jzfjizjldcazysnqlpjr.supabase.co/functions/v1/expo-dashboard",dest:"dashboard.html",key:"expo_dashboard_pin"},
+ scanner:{label:"Staff Scanner PIN",button:"LOGIN TO SCANNER",url:"https://jzfjizjldcazysnqlpjr.supabase.co/functions/v1/expo-scanner",dest:"scanner.html",key:"expo_scanner_pin"}};
+ document.querySelectorAll("[data-role]").forEach(b=>b.addEventListener("click",()=>{role=b.dataset.role;document.querySelectorAll("[data-role]").forEach(x=>x.classList.toggle("active",x===b));$("pinLabel").textContent=roles[role].label;$("submit").textContent=roles[role].button;$("pin").value="";$("message").textContent="Enter the PIN for "+(role==="panel"?"admin panel":"scanning team")+"."; }));
+ $("accessForm").addEventListener("submit",async e=>{e.preventDefault();const pin=$("pin").value.trim();if(!pin)return;const cfg=roles[role];$("submit").disabled=true;$("message").textContent="Verifying access…";
+ try{const r=await fetch(cfg.url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(role==="panel"?{pin}:{action:"login",pin})});let d={};try{d=await r.json()}catch{};const valid=role==="panel"?(r.ok&&d.success===true):(r.ok&&d.status==="authenticated");if(!valid)throw new Error(d.error||(r.status===401?"Incorrect PIN. Please try again.":"Login failed. Please retry."));sessionStorage.setItem(cfg.key,pin);location.href=cfg.dest;}
+ catch(err){$("message").textContent=err.message||"Could not verify access.";$("message").style.background="#fff0f0";$("message").style.color="#a82035";}
+ finally{$("submit").disabled=false;}
+ });
+})();
+</script></body></html>
